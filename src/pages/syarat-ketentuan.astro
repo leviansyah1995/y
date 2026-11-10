@@ -1,0 +1,79 @@
+---
+// src/pages/syarat-ketentuan.astro — Syarat & Ketentuan DevDian
+// DIBUTUHKAN oleh Google AdSense & sebagai perlindungan hukum. Sesuaikan email kontak.
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const lastUpdated = '10 November 2026';
+const contactEmail = 'halo@devdian.id'; // ← ganti dengan email Anda
+---
+
+<BaseLayout
+  title="Syarat & Ketentuan"
+  description="Syarat dan ketentuan penggunaan situs DevDian — ketentuan konten, hak cipta, batasan tanggung jawab, iklan, dan ketentuan hukum lainnya."
+>
+  <p class="section-eyebrow">SYARAT &amp; KETENTUAN</p>
+  <h1>Syarat &amp; Ketentuan</h1>
+  <p class="lede">Terakhir diperbarui: {lastUpdated} · Berlaku untuk situs <strong>DevDian</strong></p>
+
+  <h2>1. Penerimaan Ketentuan</h2>
+  <p>Dengan mengakses, membaca, atau menggunakan situs ini ("Situs"), Anda dianggap telah membaca,
+    memahami, dan menyetujui seluruh syarat dan ketentuan pada halaman ini beserta
+    <a href="/privasi/">Kebijakan Privasi</a> dan <a href="/disclaimer/">Disclaimer</a>.
+    Jika Anda tidak menyetujui salah satu bagian, mohon hentikan penggunaan Situs.</p>
+
+  <h2>2. Tentang Situs</h2>
+  <p>DevDian adalah situs blog independen yang berisi artikel seputar oprek software HP
+    (unlock, root, custom ROM, flashing, unbrick) dan pengembangan web (termasuk web micro tool).
+    Konten ditulis berdasarkan pengalaman pribadi penulis dan sumber-sumber yang dianggap tepercaya,
+    namun <strong>tidak dijamin bebas dari kekeliruan</strong>.</p>
+
+  <h2>3. Risiko Perangkat (Oprek HP)</h2>
+  <p>Tindakan seperti unlock bootloader, root, instalasi custom recovery/ROM, dan flashing firmware
+    <strong>dapat menghanguskan garansi, merusak perangkat, atau menyebabkan kehilangan data</strong>.
+    Anda <strong>wajib melakukan backup</strong> sebelum mengikuti panduan apa pun di Situs ini.
+    Seluruh tindakan atas perangkat Anda adalah keputusan dan tanggung jawab Anda sepenuhnya.
+    Gunakan panduan ini secara legal: hanya oprek perangkat milik sendiri dan hormati lisensi
+    serta ketentuan produsen perangkat.</p>
+
+  <h2>4. Hak Kekayaan Intelektual</h2>
+  <p>Seluruh teks, kode contoh, dan materi di Situs ini adalah milik DevDian, kecuali dinyatakan
+    lain. Anda boleh membagikan tautan ke halaman Situs dan mengutip singkat dengan atribusi yang
+    wajar. Dilarang menyalin, menerbitkan ulang, atau menjual seluruh isi Situs tanpa izin tertulis.</p>
+
+  <h2>5. Tautan Pihak Ketiga &amp; Sumber File</h2>
+  <p>Artikel dapat menautkan situs lain (forum, repository, dokumentasi resmi, sumber firmware).
+    Kami tidak mengendalikan isi tautan tersebut dan tidak bertanggung jawab atas file, layanan,
+    atau kebijakan mereka. <strong>Unduh firmware/ROM hanya dari sumber resmi</strong>; kami tidak
+    pernah membagikan file bajakan atau modifikasi ilegal.</p>
+
+  <h2>6. Iklan &amp; Konten Bersponsor</h2>
+  <p>Situs ini dapat menampilkan iklan, termasuk melalui Google AdSense. Keberadaan iklan
+    <strong>tidak berarti DevDian mendukung produk/jasa yang diiklankan</strong>, dan iklan tidak
+    memengaruhi keputusan editorial. Lihat bagian <em>Google AdSense &amp; Cookies Periklanan</em>
+    pada Kebijakan Privasi untuk detail cookies iklan.</p>
+
+  <h2>7. Batasan Tanggung Jawab</h2>
+  <p>Situs disediakan <em>"apa adanya"</em> (as is). Sejauh diizinkan hukum, DevDian tidak
+    bertanggung jawab atas kerugian langsung/tidak langsung yang timbul dari penggunaan Situs,
+    termasuk kerusakan perangkat, kehilangan data, hangusnya garansi, kesalahan informasi,
+    atau ketidaktersediaan Situs.</p>
+
+  <h2>8. Perubahan Ketentuan</h2>
+  <p>Kami dapat memperbarui syarat dan ketentuan ini sewaktu-waktu tanpa pemberitahuan khusus.
+    Versi terbaru selalu tersedia di halaman ini. Penggunaan Situs yang berkelanjutan setelah
+    perubahan dianggap sebagai persetujuan Anda.</p>
+
+  <h2>9. Hukum yang Berlaku</h2>
+  <p>Ketentuan ini tunduk pada hukum yang berlaku di Republik Indonesia. Sengketa yang timbul
+    akan diupayakan diselesaikan secara musyawarah; apabila tidak tercapai, tunduk pada
+    yurisdiksi pengadilan yang berwenang di Indonesia.</p>
+
+  <h2>10. Kontak</h2>
+  <p>Pertanyaan mengenai ketentuan ini? Email ke
+    <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.</p>
+</BaseLayout>
+
+<style>
+  .section-eyebrow { margin: 0 0 .2rem; font-size: .68rem; font-weight: 800; letter-spacing: .2em; color: var(--muted); }
+  .lede a { color: var(--accent, #4f46e5); font-weight: 600; }
+</style>

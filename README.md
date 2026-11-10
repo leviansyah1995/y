@@ -46,6 +46,7 @@ Visual tanpa menyentuh kode (ubah → Publish → live):
 
 | Grup | Yang bisa diatur |
 |---|---|
+| `[BRAND]` | **Logo brand-mark** — upload logo Anda (menggantikan ⚡), kosongkan untuk bawaan |
 | `[SEO]` | Judul situs, deskripsi, keywords, OG image default, URL situs, verifikasi GSC |
 | `[MENU]` | **Menu navigasi** — tambah/edit/hapus item (label + link) |
 | `[TEKS]` | **Semua teks beranda**: eyebrow, judul hero (2 baris), label & link tombol CTA, tagline footer, **bar pengumuman** (on/off + teks + link) |
@@ -54,6 +55,8 @@ Visual tanpa menyentuh kode (ubah → Publish → live):
 | `[PROFIL]` | Peran & bio penulis (muncul di kartu "Tentang Penulis" akhir artikel) |
 | `[IKLAN]` | Publisher ID, master switch ON/OFF, slot & posisi **SEBELUM / SETELAH** isi artikel |
 | `[ANALYTICS]` | GA4, Looker Studio embed, **Cloudflare Web Analytics** (statistik ringan tanpa cookie), **GoatCounter** (counter "👁️ N tayang" per artikel) |
+
+**Halaman hukum (wajib AdSense) — sudah tersedia:** Tentang · Kontak · Privasi · **Syarat & Ketentuan** (`/syarat-ketentuan/`) · **Disclaimer** (`/disclaimer/`), semuanya terhubung di footer.
 
 **Halaman artikel** kini punya: tombol **bagikan** (X, Facebook, LinkedIn, WhatsApp, Telegram, Salin link) + **kartu profil penulis** + counter tayang opsional.
 

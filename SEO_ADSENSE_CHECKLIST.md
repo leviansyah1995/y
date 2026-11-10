@@ -1,5 +1,12 @@
 # 🔍 AUDIT SEO & KELAYAKAN ADSENSE — DevDian
 
+## 0.1. Update (10 Nov 2026) — Halaman hukum & brand lengkap
+
+- ✅ Tambah halaman **Syarat & Ketentuan** (`/syarat-ketentuan/`) & **Disclaimer** (`/disclaimer/`), terhubung dari footer
+- ✅ Footer mobile-friendly: **menu navigasi jadi dropdown hamburger** di HP (≤768px), container responsif & terpusat
+- ✅ Logo brand-mark bisa diganti dari `/admin → [BRAND] Logo Situs` (kosong = ⚡ bawaan)
+- ✅ Kredit "Dibangun dengan Astro…" di footer dihapus (tagline footer opsional, kosong = tersembunyi)
+
 ## 0. Hasil Lighthouse (diukur, bukan tebakan — 9 Nov 2026, lab test mobile)
 
 | Halaman | Performance | SEO | Accessibility | Best Practices | FCP | LCP | TBT | CLS | Total berat |

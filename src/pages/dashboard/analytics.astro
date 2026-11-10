@@ -492,7 +492,8 @@ const donut = [
     --shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.65);
   }
 
-  * { box-sizing: border-box; }
+  :global(*), :global(*::before), :global(*::after) { box-sizing: border-box; }
+  :global(html), :global(body) { overflow-x: clip; }
   body {
     margin: 0;
     background:

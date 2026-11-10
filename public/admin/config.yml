@@ -115,6 +115,9 @@ collections:
         label: 'Konfigurasi Global (SEO · Menu · Iklan · Teks · Analytics)'
         file: src/data/siteConfig.json
         fields:
+          # ── BRAND & LOGO (ganti ⚡ dengan logo Anda) ─────────
+          - { label: '[BRAND] Logo brand-mark (pojok kiri atas)', name: logoImage, widget: image, required: false, hint: 'Upload logo Anda (PNG/SVG transparan, tinggi ideal ~80–160 px). Kosongkan untuk memakai ikon ⚡ bawaan. Nama tampilan tetap dari [SEO] Nama/Judul Situs.' }
+
           # ── SEO GLOBAL ─────────────────────────────────────
           - { label: '[SEO] Nama / Judul Situs (Site Title)', name: siteTitle, widget: string, hint: 'Contoh: DevDian' }
           - { label: '[SEO] Deskripsi Utama (Site Description)', name: siteDescription, widget: text, hint: '150–160 karakter, dipakai sebagai meta description default' }
@@ -134,7 +137,7 @@ collections:
           - { label: '[TEKS] Hero Beranda — Tombol utama: link', name: heroCtaPrimaryHref, widget: string, default: '#artikel', hint: '#artikel = scroll ke daftar artikel, atau /blog/' }
           - { label: '[TEKS] Hero Beranda — Tombol kedua: label', name: heroCtaSecondaryLabel, widget: string, default: 'Tentang DevDian' }
           - { label: '[TEKS] Hero Beranda — Tombol kedua: link', name: heroCtaSecondaryHref, widget: string, default: '/tentang/' }
-          - { label: '[TEKS] Footer — tagline kecil', name: footerTagline, widget: string, hint: 'Teks kecil di bawah © di footer, misal: Dibangun dengan Astro…' }
+          - { label: '[TEKS] Footer — tagline kecil (opsional)', name: footerTagline, widget: string, required: false, hint: 'Teks kecil di bawah © di footer. Kosongkan untuk menyembunyikan baris ini sepenuhnya.' }
           - { label: '[TEKS] Bar Pengumuman — tampilkan?', name: announcementEnabled, widget: boolean, default: false, hint: 'ON = bar tipis di atas navbar (seperti header promo)' }
           - { label: '[TEKS] Bar Pengumuman — isi pesan', name: announcementText, widget: string, required: false }
           - { label: '[TEKS] Bar Pengumuman — label link', name: announcementLinkLabel, widget: string, required: false, default: 'Baca sekarang →' }

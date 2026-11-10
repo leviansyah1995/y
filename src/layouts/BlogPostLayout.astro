@@ -259,7 +259,9 @@ const jsonLd = {
     --page: #f6f7fb;
     --line: #e2e8f0;
   }
-  * { box-sizing: border-box; }
+  :global(*), :global(*::before), :global(*::after) { box-sizing: border-box; }
+  html, body { overflow-x: clip; }
+  img, svg, video { max-width: 100%; }
   body {
     margin: 0;
     background: var(--page);
@@ -268,7 +270,7 @@ const jsonLd = {
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
   }
-  .container { width: 100%; max-width: 1080px; margin-inline: auto; padding-inline: 1.25rem; }
+  .container { box-sizing: border-box; width: 100%; max-width: 1080px; margin-inline: auto; padding-inline: clamp(1rem, 4vw, 1.25rem); }
 
   /* Article */
   .article-wrapper { padding-block: 2.5rem 3.5rem; }

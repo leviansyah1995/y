@@ -1,7 +1,9 @@
 ---
 /**
  * SiteHeader.astro — Header publik: bar pengumuman + navbar dari siteConfig.json.
- * Menu navigasi 100% bisa diedit dari /admin → ⚙️ Pengaturan Situs → [MENU] Menu Navigasi.
+ * Menu navigasi 100% bisa diedit dari /admin → ⚙️ Pengaturan Situs → [MENU].
+ * Logo brand bisa diganti dari /admin → [BRAND] Logo Situs (kosong = ⚡ bawaan).
+ * Mobile (≤768px): menu jadi dropdown lewat tombol hamburger.
  */
 import siteConfig from '../data/siteConfig.json';
 
@@ -28,6 +30,7 @@ const nav = (Array.isArray(siteConfig.nav) ? siteConfig.nav : [])
   .filter((item) => item && item.label && item.href)
   .slice(0, 8); // batas wajar untuk navbar
 
+const logoImage = (siteConfig.logoImage ?? '').trim();
 const showAnnouncement = siteConfig.announcementEnabled === true && (siteConfig.announcementText ?? '').trim() !== '';
 ---
 
@@ -46,10 +49,28 @@ const showAnnouncement = siteConfig.announcementEnabled === true && (siteConfig.
 <header class="site-header">
   <div class="container header-inner">
     <a class="brand" href={withBase('/')}>
-      <span class="brand-mark" aria-hidden="true">⚡</span>
+      {logoImage ? (
+        <img class="brand-logo" src={withBase(logoImage)} alt={siteConfig.siteTitle} width="40" height="40" decoding="async" />
+      ) : (
+        <span class="brand-mark" aria-hidden="true">⚡</span>
+      )}
       <span class="brand-text">{siteConfig.siteTitle}</span>
     </a>
-    <nav class="site-nav" aria-label="Navigasi utama">
+
+    <button
+      type="button"
+      class="nav-toggle"
+      id="navToggle"
+      aria-label="Buka menu"
+      aria-expanded="false"
+      aria-controls="siteNav"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <nav class="site-nav" id="siteNav" aria-label="Navigasi utama">
       {nav.map((item) => (
         <a
           href={withBase(item.href)}
@@ -61,8 +82,31 @@ const showAnnouncement = siteConfig.announcementEnabled === true && (siteConfig.
   </div>
 </header>
 
+<script>
+  const btn = document.getElementById('navToggle');
+  const navEl = document.getElementById('siteNav');
+  if (btn && navEl) {
+    const setOpen = (open: boolean) => {
+      btn.classList.toggle('open', open);
+      navEl.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', String(open));
+      btn.setAttribute('aria-label', open ? 'Tutup menu' : 'Buka menu');
+    };
+    btn.addEventListener('click', () => setOpen(!navEl.classList.contains('open')));
+    navEl.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a')) setOpen(false);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    });
+    document.addEventListener('click', (event) => {
+      if (!(event.target as HTMLElement).closest('.site-header')) setOpen(false);
+    });
+  }
+</script>
+
 <style>
-  .container { width: 100%; max-width: 1100px; margin-inline: auto; padding-inline: 1.25rem; }
+  .container { box-sizing: border-box; width: 100%; max-width: 1100px; margin-inline: auto; padding-inline: clamp(1rem, 4vw, 1.25rem); }
 
   /* Bar pengumuman */
   .announcement { background: linear-gradient(90deg, #312e81, #0e7490); color: #e0e7ff; font-size: .8rem; }
@@ -73,18 +117,55 @@ const showAnnouncement = siteConfig.announcementEnabled === true && (siteConfig.
   .announcement-cta:hover { color: #22d3ee; }
 
   /* Header */
-  .site-header { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(12px); background: rgba(255,255,255,.85); border-bottom: 1px solid #e2e8f0; }
-  .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: 60px; }
+  .site-header { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(255,255,255,.88); border-bottom: 1px solid #e2e8f0; }
+  .header-inner { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 60px; }
   .brand { display: inline-flex; align-items: center; gap: .6rem; text-decoration: none; color: #0f172a; font-weight: 800; }
-  .brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg,#4f46e5,#06b6d4); font-size: 1rem; }
+  .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: .65rem; background: linear-gradient(135deg,#4f46e5,#06b6d4); font-size: 1.05rem; }
+  .brand-logo { height: 40px; width: auto; max-width: 160px; border-radius: .5rem; object-fit: contain; display: block; }
   .brand-text { max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .site-nav { display: flex; gap: .25rem; }
   .site-nav a { text-decoration: none; color: #475569; font-size: .9rem; font-weight: 600; padding: .4rem .75rem; border-radius: .6rem; }
   .site-nav a:hover, .site-nav a.active { color: #4f46e5; background: #eef2ff; }
 
-  @media (max-width: 640px) {
-    .brand-text { max-width: 34vw; }
-    .site-nav a { padding: .35rem .5rem; font-size: .82rem; }
+  /* Tombol hamburger — hanya tampil di mobile */
+  .nav-toggle { display: none; flex: none; flex-direction: column; align-items: center; justify-content: center; gap: 5px; width: 42px; height: 42px; padding: 10px; border: 1px solid #e2e8f0; border-radius: .7rem; background: #fff; cursor: pointer; }
+  .nav-toggle span { display: block; width: 100%; height: 2px; border-radius: 2px; background: #0f172a; transition: transform .25s ease, opacity .2s ease; }
+  .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(.15); }
+  .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .nav-toggle:focus-visible { outline: 2px solid #4f46e5; outline-offset: 2px; }
+
+  @media (max-width: 768px) {
+    .brand-text { max-width: 38vw; font-size: .95rem; }
+    .brand-mark, .brand-logo { height: 32px; width: 32px; border-radius: .5rem; }
+    .brand-logo { width: auto; max-width: 120px; }
+    .nav-toggle { display: inline-flex; }
+
+    /* Dropdown menu — panel melayang di bawah header, rata kiri-kanan dengan margin konten */
+    .site-nav {
+      position: absolute;
+      top: calc(100% + .6rem);
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      gap: .2rem;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+      padding: .55rem;
+      max-height: min(72vh, 480px);
+      overflow-y: auto;
+      opacity: 0;
+      transform: translateY(-10px);
+      pointer-events: none;
+      transition: opacity .22s ease, transform .22s ease;
+    }
+    .site-nav.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .site-nav a { padding: .7rem .85rem; border-radius: .65rem; font-size: .95rem; }
+    .site-nav a.active { background: #eef2ff; }
+
+    .announcement-inner { flex-wrap: wrap; gap: .35rem; padding-block: .4rem; }
     .announcement-text { font-size: .72rem; }
   }
 </style>

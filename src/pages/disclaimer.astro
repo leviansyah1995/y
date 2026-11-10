@@ -1,0 +1,65 @@
+---
+// src/pages/disclaimer.astro — Disclaimer DevDian
+// DIBUTUHKAN oleh Google AdSense. Sesuaikan email kontak.
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const lastUpdated = '10 November 2026';
+const contactEmail = 'halo@devdian.id'; // ← ganti dengan email Anda
+---
+
+<BaseLayout
+  title="Disclaimer"
+  description="Disclaimer DevDian — batas tanggung jawab konten oprek HP & web: risiko perangkat, kehilangan data, akurasi informasi, iklan Google, tautan pihak ketiga."
+>
+  <p class="section-eyebrow">DISCLAIMER</p>
+  <h1>Disclaimer</h1>
+  <p class="lede">Terakhir diperbarui: {lastUpdated} · Berlaku untuk situs <strong>DevDian</strong></p>
+
+  <h2>1. Konten Edukatif, Bukan Nasihat Profesional</h2>
+  <p>Seluruh artikel di Situs ini disajikan murni untuk tujuan edukasi dan informasi umum.
+    Konten <strong>bukan nasihat hukum, finansial, medis, atau profesional lainnya</strong>.
+    Untuk keputusan penting yang menyangkut legalitas perangkat, dana, atau data sensitif,
+    konsultasikan dengan pihak profesional terkait.</p>
+
+  <h2>2. Oprek HP Dilakukan di Risiko Anda Sendiri</h2>
+  <p>Langkah unlock bootloader, root, flashing, custom ROM, recovery, dan unbrick pada dasarnya
+    bersifat <em>berisiko</em>. Meskipun setiap panduan ditulis sejelas mungkin, tidak ada jaminan
+    bahwa panduan cocok untuk semua merek/tipe/versi firmware. <strong>Selalu backup data lengkap</strong>
+    dan pahami konsekuensinya (garansi hangus, perangkat bootloop, data terhapus) sebelum mulai.</p>
+
+  <h2>3. Akurasi &amp; Ketersediaan Informasi</h2>
+  <p>Versi Android, antarmuka produsen, alat flash, dan harga perangkat berubah dengan cepat.
+    Informasi di Situs dapat menjadi usang tanpa pemberitahuan. DevDian tidak menjamin kelengkapan,
+    keakuratan, atau kemutakhiran setiap artikel pada saat Anda membacanya — verifikasi dengan
+    dokumentasi resmi produsen/alat sebelum bertindak.</p>
+
+  <h2>4. Pengalaman &amp; Hasil Dapat Berbeda</h2>
+  <p>Deskripsi hasil ("berhasil root", "unbrick sukses") mencerminkan pengalaman pada perangkat
+    dan kondisi tertentu. Hasil pada perangkat Anda dapat berbeda karena perbedaan region, versi
+    bootloader, kondisi hardware, atau human error.</p>
+
+  <h2>5. Iklan Google AdSense &amp; Afiliasi</h2>
+  <p>Situs ini dapat menayangkan iklan pihak ketiga, termasuk dari Google AdSense. Produk/jasa
+    yang tampil di iklan dipilih oleh Google, bukan oleh DevDian, dan tidak serta-merta kami
+    rekomendasikan. Sebagian artikel dapat memuat tautan afiliasi; pembelian melalui tautan
+    tersebut dapat memberi kami komisi tanpa menambah biaya bagi Anda. Ini tidak pernah
+    memengaruhi penilaian editorial kami.</p>
+
+  <h2>6. Tautan &amp; File Pihak Ketiga</h2>
+  <p>Kami dapat menautkan dokumentasi resmi, forum, atau situs komunitas. Kami tidak bertanggung
+    jawab atas isi, keamanan, atau legalitas file yang Anda unduh dari pihak ketiga —
+    <strong>termasuk firmware/ROM: pastikan berasal dari sumber resmi atau mirror terpercaya</strong>.</p>
+
+  <h2>7. Ketersediaan Situs</h2>
+  <p>Situs statis ini dapat tidak tersedia sementara (pemeliharaan, error hosting). Kami tidak
+    bertanggung jawab atas kerugian akibat ketidaktersediaan atau keterlambatan pemuatan halaman.</p>
+
+  <h2>8. Koreksi &amp; Kontak</h2>
+  <p>Menemukan kesalahan pada artikel? Bantu kami memperbaikinya — email ke
+    <a href={`mailto:${contactEmail}`}>{contactEmail}</a>. Koreksi terbukti akan dicantumkan
+    pada tanggal pembaruan artikel.</p>
+</BaseLayout>
+
+<style>
+  .section-eyebrow { margin: 0 0 .2rem; font-size: .68rem; font-weight: 800; letter-spacing: .2em; color: var(--muted); }
+</style>

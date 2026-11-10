@@ -16,6 +16,7 @@
   "siteUrl": "https://y.pages.dev",
   "defaultMetaImage": "/images/uploads/contoh-hero.svg",
   "authorName": "Dian",
+  "logoImage": "",
 
   "nav": [
     { "label": "Beranda", "href": "/" },
@@ -28,7 +29,7 @@
     { "platform": "YouTube", "url": "https://www.youtube.com/@DevDian" },
     { "platform": "Telegram", "url": "https://t.me/devdian" }
   ],
-  "footerTagline": "Dibangun dengan Astro · Konten dikelola via Sveltia CMS · Deploy via Cloudflare Pages",
+  "footerTagline": "",
   "heroEyebrow": "⚡ OPREK HP · WEB MICRO TOOL",
   "heroTitleA": "Oprek HP & web micro tool,",
   "heroTitleB": "selangkah demi selangkah.",
