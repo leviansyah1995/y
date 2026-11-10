@@ -1,0 +1,261 @@
+---
+/**
+ * src/pages/index.astro — BERANDA BLOG (contoh untuk paket ini)
+ * ============================================================
+ * Beranda dinamis: daftar artikel diambil langsung dari Content Collection
+ * `blog` (file .md di src/content/blog/) — artikel baru yang Anda Publish
+ * lewat /admin otomatis tampil di sini setelah rebuild.
+ *
+ * CATATAN: jika proyek Astro Anda SUDAH punya src/pages/index.astro,
+ * JANGAN timpa — ambil bagian-bagian yang diinginkan saja.
+ */
+import { getCollection } from 'astro:content';
+import siteConfig from '../data/siteConfig.json';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import AnalyticsBeacons from '../components/AnalyticsBeacons.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const withBase = (p?: string) => {
+  if (!p) return '#';
+  if (/^https?:\/\//.test(p)) return p;
+  return `${base}${p.startsWith('/') ? p : `/${p}`}`;
+};
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => new Date(b.data.pubDate).getTime() - new Date(a.data.pubDate).getTime()
+);
+
+const dateFmt = new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' });
+const latest = posts.slice(0, 6);
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: siteConfig.siteTitle,
+  url: siteConfig.siteUrl,
+  description: siteConfig.siteDescription,
+  author: { '@type': 'Person', name: siteConfig.authorName },
+  inLanguage: 'id-ID',
+};
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{siteConfig.siteTitle}</title>
+    <meta name="description" content={siteConfig.siteDescription} />
+    <meta name="keywords" content={(siteConfig.keywords ?? []).join(', ')} />
+    <link rel="canonical" href={`${siteConfig.siteUrl.replace(/\/$/, '')}/`} />
+
+    {/* Open Graph */}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteConfig.siteTitle} />
+    <meta property="og:title" content={siteConfig.siteTitle} />
+    <meta property="og:description" content={siteConfig.siteDescription} />
+    <meta property="og:image" content={`${siteConfig.siteUrl.replace(/\/$/, '')}${siteConfig.defaultMetaImage}`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(websiteJsonLd)} />
+
+    {(siteConfig.customMetaTags ?? []).filter(t => t && t.key && t.content).map((t) =>
+      t.attribute === 'property'
+        ? <meta property={t.key} content={t.content} />
+        : <meta name={t.key} content={t.content} />
+    )}
+    <AnalyticsBeacons />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+  </head>
+
+  <body>
+    <SiteHeader />
+
+    <main>
+      {/* ══════════ HERO ══════════ */}
+      <section class="hero">
+        <div class="container hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">{siteConfig.heroEyebrow ?? '⚡ DevDian'}</span>
+            <h1>{siteConfig.heroTitleA ?? 'Web micro tool,'}<br /><span class="grad">{siteConfig.heroTitleB ?? 'selangkah demi selangkah.'}</span></h1>
+            <p class="lead">{siteConfig.siteDescription}</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href={siteConfig.heroCtaPrimaryHref ?? '#artikel'}>{siteConfig.heroCtaPrimaryLabel ?? 'Baca Artikel Terbaru'} <span aria-hidden="true">→</span></a>
+              <a class="btn btn-ghost" href={withBase(siteConfig.heroCtaSecondaryHref ?? '/tentang/')}>{siteConfig.heroCtaSecondaryLabel ?? 'Tentang Saya'}</a>
+            </div>
+            <dl class="hero-stats">
+              <div><dt>{posts.length}</dt><dd>Artikel</dd></div>
+              <div><dt>100%</dt><dd>Gratis &amp; Open</dd></div>
+              <div><dt>~2 mnt</dt><dd>Publish → Live</dd></div>
+            </dl>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="code-card">
+              <div class="code-dots"><span></span><span></span><span></span></div>
+              <pre><code><span class="tk-k">---</span>
+<span class="tk-p">title:</span> <span class="tk-s">'Selamat Datang'</span>
+<span class="tk-p">pubDate:</span> <span class="tk-n">2026-11-09</span>
+<span class="tk-k">---</span>
+
+<span class="tk-c">&lt;!-- ditulis lewat /admin --&gt;</span>
+<span class="tk-t"># Halo, dunia! 👋</span></code></pre>
+              <div class="publish-pill"><span class="dot"></span> Publish → live dalam 2 menit</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════ ARTIKEL TERBARU ══════════ */}
+      <section class="container posts" id="artikel" aria-label="Artikel terbaru">
+        <div class="section-head">
+          <div>
+            <p class="section-eyebrow">ARSIP</p>
+            <h2>Artikel Terbaru</h2>
+          </div>
+          <span class="count-pill">{posts.length} artikel</span>
+        </div>
+
+        {latest.length === 0 ? (
+          <p class="empty">Belum ada artikel. Buka <a href={withBase('/admin/')}>/admin</a> untuk menulis yang pertama.</p>
+        ) : (
+          <ul class="post-grid">
+            {latest.map((post) => (
+              <li class="post-card">
+                <a class="card-link" href={withBase(`/blog/${post.id}/`)}>
+                  {post.data.heroImage && (
+                    <img class="card-img" src={withBase(post.data.heroImage)} alt={post.data.title} loading="lazy" decoding="async" />
+                  )}
+                  <div class="card-body">
+                    <span class="chip">{post.data.category}</span>
+                    <h3>{post.data.title}</h3>
+                    <p>{post.data.description}</p>
+                    <div class="card-meta">
+                      <span>📅 {dateFmt.format(new Date(post.data.pubDate))}</span>
+                      <span>✍️ {siteConfig.authorName}</span>
+                    </div>
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* ══════════ CTA NEWSLETTER ══════════ */}
+      <section class="container" aria-label="Berlangganan">
+        <div class="cta-band">
+          <div>
+            <h2>Tutorial baru tiap minggu?</h2>
+            <p>Gabung newsletter — rangkuman singkat, langsung bisa dipraktikkan.</p>
+          </div>
+          <form class="cta-form" id="newsletter-form">
+            <label class="visually-hidden" for="nl-email">Alamat email</label>
+            <input id="nl-email" name="email" type="email" required placeholder="nama@email.com" autocomplete="email" />
+            <button type="submit">Gabung →</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <SiteFooter />
+
+    <script>
+      const form = document.getElementById('newsletter-form');
+      form?.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const input = form.querySelector('input[type="email"]') as HTMLInputElement | null;
+        form.innerHTML = '<p class="cta-thanks">✅ Terima kasih! Cek inbox Anda.</p>';
+        input?.blur();
+      });
+    </script>
+  </body>
+</html>
+
+<style>
+  :root {
+    --ink: #0f172a;
+    --muted: #475569;
+    --accent: #4f46e5;
+    --accent-2: #06b6d4;
+    --accent-soft: #eef2ff;
+    --paper: #ffffff;
+    --page: #f6f7fb;
+    --line: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .container { width: 100%; max-width: 1100px; margin-inline: auto; padding-inline: 1.25rem; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+
+  /* Hero */
+  .hero { overflow: hidden; background: radial-gradient(1200px 500px at 80% -10%, #e0e7ff 0%, transparent 55%), radial-gradient(900px 500px at -15% 120%, #cffafe 0%, transparent 50%), var(--paper); border-bottom: 1px solid var(--line); }
+  .hero-inner { display: grid; grid-template-columns: 1.05fr .95fr; gap: 2.5rem; align-items: center; padding-block: clamp(2.5rem, 6vw, 4.5rem); }
+  .eyebrow { display: inline-block; font-size: .7rem; font-weight: 800; letter-spacing: .18em; color: var(--accent); background: var(--accent-soft); border: 1px solid #e0e7ff; padding: .35rem .8rem; border-radius: 999px; margin-bottom: 1rem; }
+  h1 { font-size: clamp(2.1rem, 5vw, 3.4rem); line-height: 1.08; letter-spacing: -0.03em; margin: 0 0 1rem; }
+  .grad { background: linear-gradient(120deg, #4f46e5 0%, #06b6d4 55%, #10b981 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lead { font-size: 1.05rem; color: var(--muted); max-width: 48ch; margin: 0 0 1.5rem; }
+  .hero-cta { display: flex; gap: .75rem; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: .5rem; text-decoration: none; font-weight: 700; border-radius: .75rem; padding: .75rem 1.35rem; font-size: .95rem; transition: transform .18s ease, box-shadow .18s ease; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: linear-gradient(135deg, #4f46e5, #0891b2); color: #fff; box-shadow: 0 16px 34px -14px rgba(79,70,229,.55); }
+  .btn-ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .hero-stats { display: flex; gap: 2rem; margin: 1.75rem 0 0; padding: 0; }
+  .hero-stats div { border-left: 2px solid var(--line); padding-left: .9rem; }
+  .hero-stats dt { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; }
+  .hero-stats dd { margin: 0; font-size: .78rem; color: var(--muted); }
+
+  /* Hero art — kartu kode */
+  .hero-art { display: flex; justify-content: center; }
+  .code-card { width: 100%; max-width: 420px; background: #0f172a; border-radius: 1rem; box-shadow: 0 30px 60px -30px rgba(15,23,42,.6), 0 0 0 1px #1e293b; overflow: hidden; transform: rotate(1.5deg); }
+  .code-dots { display: flex; gap: .4rem; padding: .7rem .9rem; border-bottom: 1px solid #1e293b; }
+  .code-dots span { width: 10px; height: 10px; border-radius: 999px; background: #334155; }
+  .code-dots span:first-child { background: #f87171; }
+  .code-dots span:nth-child(2) { background: #fbbf24; }
+  .code-dots span:last-child { background: #34d399; }
+  .code-card pre { margin: 0; padding: 1.1rem 1.25rem 1.4rem; font-size: .82rem; line-height: 1.75; color: #e2e8f0; font-family: ui-monospace, Menlo, Consolas, monospace; overflow-x: auto; }
+  .tk-k { color: #c4b5fd; } .tk-p { color: #7dd3fc; } .tk-s { color: #86efac; }
+  .tk-n { color: #fca5a5; } .tk-c { color: #94a3b8; font-style: italic; } .tk-t { color: #f8fafc; font-weight: 700; }
+  .publish-pill { display: flex; align-items: center; gap: .5rem; font-size: .72rem; color: #86efac; background: rgba(52,211,153,.08); border-top: 1px solid #1e293b; padding: .6rem 1.25rem; }
+  .publish-pill .dot { width: 8px; height: 8px; border-radius: 999px; background: #34d399; box-shadow: 0 0 10px #34d399; }
+
+  /* Artikel grid */
+  .posts { padding-block: 3rem 1rem; }
+  .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+  .section-eyebrow { margin: 0 0 .2rem; font-size: .68rem; font-weight: 800; letter-spacing: .2em; color: var(--muted); }
+  h2 { margin: 0; font-size: clamp(1.4rem, 3vw, 1.9rem); letter-spacing: -0.02em; }
+  .count-pill { font-size: .78rem; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 1px solid #e0e7ff; padding: .35rem .8rem; border-radius: 999px; }
+  .post-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(295px, 1fr)); gap: 1.25rem; }
+  .post-card { background: var(--paper); border: 1px solid var(--line); border-radius: 1.1rem; overflow: hidden; transition: transform .2s ease, box-shadow .2s ease; }
+  .post-card:hover { transform: translateY(-4px); box-shadow: 0 24px 48px -24px rgba(15,23,42,.4); }
+  .card-link { display: flex; flex-direction: column; height: 100%; text-decoration: none; color: inherit; }
+  .card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; border-bottom: 1px solid var(--line); }
+  .card-body { padding: 1.1rem 1.2rem 1.25rem; display: flex; flex-direction: column; gap: .45rem; }
+  .chip { align-self: flex-start; font-size: .66rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: .28rem .65rem; border-radius: 999px; }
+  .card-body h3 { margin: 0; font-size: 1.12rem; line-height: 1.3; letter-spacing: -0.01em; }
+  .card-body p { margin: 0; color: var(--muted); font-size: .87rem; }
+  .card-meta { display: flex; gap: 1rem; flex-wrap: wrap; font-size: .74rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: .65rem; margin-top: .35rem; }
+  .empty { color: var(--muted); padding: 2rem; text-align: center; border: 1px dashed var(--line); border-radius: 1rem; }
+
+  /* CTA newsletter */
+  .cta-band { margin: 2rem auto 3.5rem; max-width: 1100px; background: linear-gradient(135deg, #312e81, #0e7490); border-radius: 1.25rem; padding: clamp(1.5rem, 4vw, 2.5rem); display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap; color: #fff; }
+  .cta-band h2 { color: #fff; font-size: clamp(1.25rem, 2.5vw, 1.6rem); }
+  .cta-band p { margin: .35rem 0 0; color: #c7d2fe; font-size: .92rem; max-width: 46ch; }
+  .cta-form { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .cta-form input { border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.1); color: #fff; border-radius: .7rem; padding: .75rem 1rem; min-width: 230px; font-size: .95rem; }
+  .cta-form input::placeholder { color: #a5b4fc; }
+  .cta-form input:focus { outline: 2px solid #22d3ee; border-color: transparent; }
+  .cta-form button { background: #22d3ee; color: #083344; font-weight: 800; border: none; border-radius: .7rem; padding: .75rem 1.25rem; cursor: pointer; font-size: .95rem; }
+  .cta-thanks { margin: 0; font-weight: 700; color: #86efac; }
+
+  @media (max-width: 900px) {
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-art { order: -1; }
+    .code-card { max-width: 340px; }
+  }
+</style>

@@ -1,0 +1,55 @@
+---
+// src/pages/kontak.astro — Halaman kontak DevDian
+// GANTI alamat email & tautan sosial di bawah dengan milik Anda yang asli.
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const email = 'halo@devdian.id'; // ← ganti dengan email Anda
+const channels = [
+  { label: 'Email', handle: email, href: `mailto:${email}`, desc: 'Untuk pertanyaan, kolaborasi, atau laporan typo di artikel.', icon: '✉️' },
+  { label: 'GitHub', handle: 'github.com/devdian', href: 'https://github.com/devdian', desc: 'Kode micro tool, konfigurasi, dan script otomasi saya.', icon: '🐙' },
+  { label: 'YouTube', handle: '@DevDian', href: 'https://www.youtube.com/@DevDian', desc: 'Video tutorial oprek HP & web micro tool (jika sudah ada).', icon: '📺' },
+  { label: 'Telegram', handle: 't.me/devdian', href: 'https://t.me/devdian', desc: 'Tanya-jawab singkat seputar oprek & web.', icon: '✈️' },
+];
+---
+
+<BaseLayout
+  title="Kontak"
+  description="Hubungi Dian (DevDian) — pertanyaan oprek HP, web micro tool, atau kolaborasi."
+>
+  <p class="section-eyebrow">KONTAK</p>
+  <h1>Sapa Saya</h1>
+  <p class="lede">Saya membaca semua pesan — pertanyaan terbaik akan saya jawab lewat artikel.
+    Untuk balasan tercepat, gunakan email.</p>
+
+  <div class="channel-grid">
+    {channels.map((c) => (
+      <a class="channel-card" href={c.href} rel="noopener" target={c.href.startsWith('http') ? '_blank' : undefined}>
+        <span class="channel-icon" aria-hidden="true">{c.icon}</span>
+        <span class="channel-body">
+          <span class="channel-label">{c.label}</span>
+          <span class="channel-handle">{c.handle}</span>
+          <span class="channel-desc">{c.desc}</span>
+        </span>
+      </a>
+    ))}
+  </div>
+
+  <div class="note">
+    <strong>Sebelum bertanya soal oprek HP</strong>, sertakan: model &amp; tipe HP, versi
+    MIUI/Android, apakah bootloader sudah unlock, dan pesan error lengkapnya (foto/screenshot).
+    Tanpa itu, jawabannya hampir pasti "tergantung" — dan itu membuang waktu kita berdua. 🙂
+  </div>
+</BaseLayout>
+
+<style>
+  .section-eyebrow { margin: 0 0 .2rem; font-size: .68rem; font-weight: 800; letter-spacing: .2em; color: var(--muted); }
+  .channel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1.5rem 0 2rem; }
+  .channel-card { display: flex; gap: .9rem; align-items: flex-start; background: #fff; border: 1px solid var(--line); border-radius: 1rem; padding: 1rem 1.1rem; text-decoration: none; color: inherit; transition: transform .2s ease, box-shadow .2s ease; }
+  .channel-card:hover { transform: translateY(-3px); box-shadow: 0 20px 40px -22px rgba(15,23,42,.4); }
+  .channel-icon { font-size: 1.5rem; line-height: 1; }
+  .channel-body { display: flex; flex-direction: column; gap: .15rem; }
+  .channel-label { font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .channel-handle { font-weight: 800; color: var(--accent); font-size: .98rem; }
+  .channel-desc { font-size: .82rem; color: var(--muted); }
+  .note { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: .9rem 1.1rem; border-radius: .75rem; font-size: .88rem; }
+</style>

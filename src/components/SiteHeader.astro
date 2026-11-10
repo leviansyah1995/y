@@ -1,0 +1,90 @@
+---
+/**
+ * SiteHeader.astro — Header publik: bar pengumuman + navbar dari siteConfig.json.
+ * Menu navigasi 100% bisa diedit dari /admin → ⚙️ Pengaturan Situs → [MENU] Menu Navigasi.
+ */
+import siteConfig from '../data/siteConfig.json';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const withBase = (p?: string) => {
+  if (!p) return '#';
+  if (/^(https?:)?\/\//.test(p) || p.startsWith('#') || p.startsWith('mailto:') || p.startsWith('tel:')) return p;
+  return `${base}${p.startsWith('/') ? p : `/${p}`}`;
+};
+const normalize = (p: string) => {
+  let n = withBase(p);
+  if (n !== '/' && !n.endsWith('/')) n += '/';
+  return n;
+};
+const currentPath = Astro.url.pathname;
+const normalizedCurrent = currentPath.endsWith('/') ? currentPath : `${currentPath}/`;
+const isActive = (href: string) => {
+  const target = normalize(href);
+  if (target === normalize('/')) return normalizedCurrent === target;
+  return normalizedCurrent.startsWith(target);
+};
+
+const nav = (Array.isArray(siteConfig.nav) ? siteConfig.nav : [])
+  .filter((item) => item && item.label && item.href)
+  .slice(0, 8); // batas wajar untuk navbar
+
+const showAnnouncement = siteConfig.announcementEnabled === true && (siteConfig.announcementText ?? '').trim() !== '';
+---
+
+{showAnnouncement && (
+  <div class="announcement" role="note">
+    <div class="container announcement-inner">
+      <span class="announcement-dot" aria-hidden="true"></span>
+      <p class="announcement-text">{siteConfig.announcementText}</p>
+      {siteConfig.announcementLinkLabel && siteConfig.announcementHref && (
+        <a class="announcement-cta" href={withBase(siteConfig.announcementHref)}>{siteConfig.announcementLinkLabel}</a>
+      )}
+    </div>
+  </div>
+)}
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href={withBase('/')}>
+      <span class="brand-mark" aria-hidden="true">⚡</span>
+      <span class="brand-text">{siteConfig.siteTitle}</span>
+    </a>
+    <nav class="site-nav" aria-label="Navigasi utama">
+      {nav.map((item) => (
+        <a
+          href={withBase(item.href)}
+          class={isActive(item.href) ? 'active' : ''}
+          aria-current={isActive(item.href) ? 'page' : undefined}
+        >{item.label}</a>
+      ))}
+    </nav>
+  </div>
+</header>
+
+<style>
+  .container { width: 100%; max-width: 1100px; margin-inline: auto; padding-inline: 1.25rem; }
+
+  /* Bar pengumuman */
+  .announcement { background: linear-gradient(90deg, #312e81, #0e7490); color: #e0e7ff; font-size: .8rem; }
+  .announcement-inner { display: flex; align-items: center; justify-content: center; gap: .6rem; padding: .42rem .25rem; text-align: center; }
+  .announcement-dot { flex: none; width: 7px; height: 7px; border-radius: 999px; background: #22d3ee; box-shadow: 0 0 8px #22d3ee; }
+  .announcement-text { margin: 0; font-weight: 600; }
+  .announcement-cta { color: #fff; font-weight: 800; text-decoration: none; border-bottom: 2px solid #22d3ee; padding-bottom: 1px; white-space: nowrap; }
+  .announcement-cta:hover { color: #22d3ee; }
+
+  /* Header */
+  .site-header { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(12px); background: rgba(255,255,255,.85); border-bottom: 1px solid #e2e8f0; }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: 60px; }
+  .brand { display: inline-flex; align-items: center; gap: .6rem; text-decoration: none; color: #0f172a; font-weight: 800; }
+  .brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg,#4f46e5,#06b6d4); font-size: 1rem; }
+  .brand-text { max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .site-nav { display: flex; gap: .25rem; }
+  .site-nav a { text-decoration: none; color: #475569; font-size: .9rem; font-weight: 600; padding: .4rem .75rem; border-radius: .6rem; }
+  .site-nav a:hover, .site-nav a.active { color: #4f46e5; background: #eef2ff; }
+
+  @media (max-width: 640px) {
+    .brand-text { max-width: 34vw; }
+    .site-nav a { padding: .35rem .5rem; font-size: .82rem; }
+    .announcement-text { font-size: .72rem; }
+  }
+</style>

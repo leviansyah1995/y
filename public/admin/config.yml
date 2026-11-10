@@ -1,0 +1,166 @@
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
+# ============================================================
+#  SVELTIA CMS — Konfigurasi Admin Dashboard (seperti editor tema Blogger)
+#  Dokumentasi: https://sveltiacms.app/en/docs
+#  (file ini 100% kompatibel dengan Decap CMS)
+# ============================================================
+
+backend:
+  name: github
+  # <<< GANTI INI: format owner/repo sesuai repositori GitHub Anda
+  repo: username-github/nama-repo
+  branch: main
+  # ── Login GitHub ──────────────────────────────────────────
+  # Metode A (paling sederhana): TIDAK PERLU isi apa pun di sini.
+  #   Di layar login klik "Sign In Using Access Token", lalu tempel
+  #   GitHub Personal Access Token (fine-grained):
+  #   - Repository access : hanya repo ini
+  #   - Permissions       : Contents = Read and write
+  #                         Pull requests = Read and write (hanya jika editorial workflow)
+  #
+  # Metode B (tombol "Sign In with GitHub" 1-klik, untuk editor non-teknis):
+  #   Deploy OAuth client "Sveltia CMS Authenticator" (Cloudflare Workers, gratis),
+  #   lalu isi base_url di bawah ini (jangan diisi jika pakai Metode A):
+  # base_url: https://sveltia-cms-auth.nama-anda.workers.dev
+
+media_folder: public/images/uploads
+public_folder: /images/uploads
+
+# publish_mode: editorial_workflow
+
+collections:
+  # ══════════════════════════════════════════════════════════
+  # 1) ARTIKEL BLOG
+  # ══════════════════════════════════════════════════════════
+  - name: blog
+    label: '📝 Artikel Blog'
+    label_singular: 'Artikel'
+    folder: src/content/blog
+    create: true
+    extension: md
+    format: frontmatter
+    slug: '{{slug}}'
+    identifier_field: title
+    summary: '{{title}}'
+    sortable_fields:
+      - pubDate
+      - title
+    fields:
+      - label: 'Judul Artikel'
+        name: title
+        widget: string
+        hint: 'Tampil sebagai judul halaman & H1'
+      - label: 'Meta Description'
+        name: description
+        widget: text
+        hint: '150–160 karakter untuk SEO (muncul di hasil pencarian Google)'
+      - label: 'Tanggal Terbit'
+        name: pubDate
+        widget: datetime
+        type: date
+        format: 'YYYY-MM-DD'
+        picker_utc: false
+      - label: 'Terakhir Diperbarui'
+        name: updatedDate
+        widget: datetime
+        type: date
+        format: 'YYYY-MM-DD'
+        required: false
+        picker_utc: false
+      - label: 'Gambar Utama (Hero)'
+        name: heroImage
+        widget: image
+        required: false
+        hint: 'Diunggah ke /images/uploads. Disarankan rasio 16:9, maks 300 KB'
+      - label: 'Kategori'
+        name: category
+        widget: select
+        default: 'Tutorial'
+        options:
+          - Tutorial
+          - Oprek HP & Root
+          - Web Development
+          - Web Micro Tool
+          - DevOps & Deploy
+          - JavaScript & TypeScript
+          - Tools & Produktivitas
+          - Catatan Pribadi
+      - label: 'Tags'
+        name: tags
+        widget: list
+        default: []
+        hint: 'Satu tag per baris, misal: astro, root, twrp'
+      - label: 'Draft (sembunyikan dari situs publik)'
+        name: draft
+        widget: boolean
+        default: false
+      - label: 'Isi Artikel'
+        name: body
+        widget: richtext
+        hint: 'Editor rich text — bold, heading, list, code block, gambar, link'
+        # Pindah ke Decap CMS? Ganti menjadi: widget: markdown
+
+  # ══════════════════════════════════════════════════════════
+  # 2) PENGATURAN SITUS — "Editor Tema Blogger" versi DevDian
+  #    Semuanya tersimpan di src/data/siteConfig.json & dibaca
+  #    otomatis oleh layout. Ubah → Publish → situs berubah.
+  # ══════════════════════════════════════════════════════════
+  - name: settings
+    label: '⚙️ Pengaturan Situs'
+    delete: false
+    editor:
+      preview: false
+    files:
+      - name: siteConfig
+        label: 'Konfigurasi Global (SEO · Menu · Iklan · Teks · Analytics)'
+        file: src/data/siteConfig.json
+        fields:
+          # ── SEO GLOBAL ─────────────────────────────────────
+          - { label: '[SEO] Nama / Judul Situs (Site Title)', name: siteTitle, widget: string, hint: 'Contoh: DevDian' }
+          - { label: '[SEO] Deskripsi Utama (Site Description)', name: siteDescription, widget: text, hint: '150–160 karakter, dipakai sebagai meta description default' }
+          - { label: '[SEO] Keywords (meta)', name: keywords, widget: list, default: ['devdian', 'oprek hp'], hint: 'Satu kata kunci per baris' }
+          - { label: '[SEO] Default Meta Image / OG Image', name: defaultMetaImage, widget: image, hint: 'Dipakai saat artikel tidak punya hero image. Disarankan 1200×630 px' }
+          - { label: '[SEO] URL Situs (absolute, tanpa trailing slash)', name: siteUrl, widget: string, hint: 'Contoh: https://devdian.id atau https://nama-proyek.pages.dev' }
+          - { label: '[SEO] Google Search Console — Verification Token', name: gscVerification, widget: string, required: false, hint: 'Token saja (nilai content dari meta google-site-verification)' }
+
+          # ── MENU NAVIGASI (seperti widget Menu di Blogger) ──
+          - { label: '[MENU] Menu Navigasi (klik + untuk tambah item baru)', name: nav, widget: list, label_singular: 'Menu', summary: '{{fields.label}}  →  {{fields.href}}', hint: 'Path internal diawali / (mis. /blog/) atau URL lengkap (https://…). Maksimal 8 item tampil.', fields: [ { label: 'Label', name: label, widget: string }, { label: 'Link (path /… atau URL lengkap)', name: href, widget: string } ] }
+
+          # ── TEKS & TAMPILAN (seperti Tata Letak di Blogger) ──
+          - { label: '[TEKS] Hero Beranda — Eyebrow / kicker kecil', name: heroEyebrow, widget: string, hint: 'Teks kecil di atas judul besar, misal: ⚡ OPREK HP · WEB MICRO TOOL' }
+          - { label: '[TEKS] Hero Beranda — Judul baris 1', name: heroTitleA, widget: string }
+          - { label: '[TEKS] Hero Beranda — Judul baris 2 (bagian gradasi warna)', name: heroTitleB, widget: string }
+          - { label: '[TEKS] Hero Beranda — Tombol utama: label', name: heroCtaPrimaryLabel, widget: string, default: 'Baca Artikel Terbaru' }
+          - { label: '[TEKS] Hero Beranda — Tombol utama: link', name: heroCtaPrimaryHref, widget: string, default: '#artikel', hint: '#artikel = scroll ke daftar artikel, atau /blog/' }
+          - { label: '[TEKS] Hero Beranda — Tombol kedua: label', name: heroCtaSecondaryLabel, widget: string, default: 'Tentang DevDian' }
+          - { label: '[TEKS] Hero Beranda — Tombol kedua: link', name: heroCtaSecondaryHref, widget: string, default: '/tentang/' }
+          - { label: '[TEKS] Footer — tagline kecil', name: footerTagline, widget: string, hint: 'Teks kecil di bawah © di footer, misal: Dibangun dengan Astro…' }
+          - { label: '[TEKS] Bar Pengumuman — tampilkan?', name: announcementEnabled, widget: boolean, default: false, hint: 'ON = bar tipis di atas navbar (seperti header promo)' }
+          - { label: '[TEKS] Bar Pengumuman — isi pesan', name: announcementText, widget: string, required: false }
+          - { label: '[TEKS] Bar Pengumuman — label link', name: announcementLinkLabel, widget: string, required: false, default: 'Baca sekarang →' }
+          - { label: '[TEKS] Bar Pengumuman — link tujuan', name: announcementHref, widget: string, required: false, default: '/blog/' }
+
+          # ── SOSIAL (ikon di footer) ──────────────────────────
+          - { label: '[SOSIAL] Tautan Sosial (ikon di footer)', name: socials, widget: list, label_singular: 'Sosial', summary: '{{fields.platform}}', hint: 'platform yang dikenali: GitHub, YouTube, Telegram, X, Twitter, Instagram, LinkedIn, Email — lainnya tampil ikon link generik', fields: [ { label: 'Platform (GitHub / YouTube / Telegram / X / …)', name: platform, widget: string }, { label: 'URL', name: url, widget: string } ] }
+
+          # ── META TAGS KUSTOM (tambah/edit bebas, seperti <b:skin> / head di Blogger) ──
+          - { label: '[META] Meta Tag Kustom (bebas tambah/edit — mis. theme-color, google-site-verification alternatif, dll.)', name: customMetaTags, widget: list, label_singular: 'Meta Tag', required: false, summary: '{{fields.key}} = {{fields.content}}', fields: [ { label: 'Atribut', name: attribute, widget: select, options: [name, property], default: name, hint: 'name = meta umum, property = Open Graph' }, { label: 'Key', name: key, widget: string, hint: 'mis. theme-color' }, { label: 'Value / Content', name: content, widget: string, hint: 'mis. #0b1220' } ] }
+
+          # ── PROFIL PENULIS (kartu "Tentang Penulis" di akhir artikel) ──
+          - { label: '[PROFIL] Peran / jabatan penulis', name: authorRole, widget: string, hint: 'Contoh: Penulis DevDian · Oprek HP & Web Micro Tool' }
+          - { label: '[PROFIL] Bio singkat penulis', name: authorBio, widget: text, hint: 'Maks ±300 karakter — tampil di kartu profil akhir artikel' }
+
+          # ── IKLAN (GOOGLE ADSENSE) + PENEMPATAN ──────────────
+          - { label: '[IKLAN] Google AdSense Publisher ID', name: adsenseId, widget: string, required: false, hint: 'Format: ca-pub-1234567890123456. Kosongkan jika belum punya' }
+          - { label: '[IKLAN] AKTIFKAN IKLAN (master switch ON/OFF)', name: adsEnabled, widget: boolean, default: false, hint: 'OFF = script AdSense tidak dimuat sama sekali' }
+          - { label: '[IKLAN] Tampilkan iklan di dalam artikel (umum)', name: adsInPosts, widget: boolean, default: true }
+          - { label: '[IKLAN] Tampilkan iklan SEBELUM isi artikel', name: adsBeforeContent, widget: boolean, default: false }
+          - { label: '[IKLAN] Slot ID untuk posisi SEBELUM isi artikel', name: adsenseSlotBeforeContent, widget: string, required: false, hint: 'ID slot unit iklan Display, misal: 1122334455' }
+          - { label: '[IKLAN] Tampilkan iklan SETELAH isi artikel', name: adsAfterContent, widget: boolean, default: true }
+          - { label: '[IKLAN] Slot ID untuk posisi SETELAH isi artikel', name: adsenseSlotInPost, widget: string, required: false, hint: 'ID slot unit iklan Display, misal: 1234567890' }
+
+          # ── ANALYTICS & PEMANTAUAN ───────────────────────────
+          - { label: '[ANALYTICS] GA4 Measurement ID', name: ga4MeasurementId, widget: string, required: false, hint: 'Format: G-XXXXXXXXXX — gtag.js dimuat otomatis' }
+          - { label: '[ANALYTICS] Looker Studio — Embed URL (halaman /dashboard/analytics)', name: lookerStudioEmbedUrl, widget: string, required: false, hint: 'URL iframe embed https://lookerstudio.google.com/embed/reporting/…' }
+          - { label: '[ANALYTICS] Cloudflare Web Analytics — Token (analitik ringan, tanpa cookie)', name: cloudflareAnalyticsToken, widget: string, required: false, hint: 'Dashboard Cloudflare → Analytics & Logs → Web Analytics → Add a site → salin token. Nilai publik, aman di-commit.' }
+          - { label: '[ANALYTICS] GoatCounter — site code (counter "dilihat N×" per artikel)', name: goatcounterCode, widget: string, required: false, hint: 'CODE saja, mis. devdian → devdian.goatcounter.com. Aktifkan juga toggle "Allow adding visitor counts on your website" di Settings GoatCounter' }

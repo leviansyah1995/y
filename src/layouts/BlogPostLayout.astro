@@ -1,0 +1,294 @@
+---
+/**
+ * BlogPostLayout.astro
+ * ---------------------
+ * Layout artikel yang membaca siteConfig.json secara DINAMIS:
+ *  - SEO: title, description, keywords, canonical, OG, Twitter Card, JSON-LD, GSC verification
+ *  - Meta tag kustom dari /admin (customMetaTags)
+ *  - Iklan: script AdSense (master switch adsEnabled) + slot iklan SEBELUM/SETELAH isi
+ *  - Tombol bagikan (ShareButtons) + kartu profil penulis (AuthorBox)
+ *  - Counter "dilihat N×" (GoatCounter, opsional) + beacons analytics ringan
+ *  - Header/footer dari SiteHeader/SiteFooter (menu & sosial dari /admin)
+ */
+import siteConfig from '../data/siteConfig.json';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import AdSlot from '../components/AdSlot.astro';
+import ShareButtons from '../components/ShareButtons.astro';
+import AuthorBox from '../components/AuthorBox.astro';
+import AnalyticsBeacons from '../components/AnalyticsBeacons.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  pubDate?: Date;
+  updatedDate?: Date;
+  heroImage?: string;
+  tags?: string[];
+  category?: string;
+}
+
+const {
+  title,
+  description = siteConfig.siteDescription,
+  pubDate,
+  updatedDate,
+  heroImage,
+  tags = [],
+  category,
+} = Astro.props;
+
+// ── Base path helpers ───────────────────────────────────────────────────────
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const withBase = (path?: string) => {
+  if (!path) return undefined;
+  if (/^https?:\/\//.test(path)) return path;
+  return `${base}${path.startsWith('/') ? path : `/${path}`}`;
+};
+
+// ── SEO & Open Graph ────────────────────────────────────────────────────────
+const siteBase = siteConfig.siteUrl.replace(/\/$/, '');
+const origin = new URL(siteConfig.siteUrl).origin;
+const pageTitle = `${title} — ${siteConfig.siteTitle}`;
+const canonicalURL = new URL(Astro.url.pathname, origin).href;
+const ogImagePath = heroImage ?? siteConfig.defaultMetaImage;
+const ogImage = /^https?:\/\//.test(ogImagePath)
+  ? ogImagePath
+  : `${siteBase}${ogImagePath.startsWith('/') ? ogImagePath : `/${ogImagePath}`}`;
+const keywords = (siteConfig.keywords ?? []).join(', ');
+
+// ── Iklan & Analytics ───────────────────────────────────────────────────────
+const adsEnabled = siteConfig.adsEnabled === true;
+const adsenseId = siteConfig.adsenseId ?? '';
+const adsenseConfigured = adsenseId.trim() !== '' && !adsenseId.includes('0000000000000000');
+const ga4Id = (siteConfig.ga4MeasurementId ?? '').trim();
+const ga4Ready = ga4Id !== '' && !ga4Id.includes('XXX');
+
+const showAdBefore =
+  adsEnabled && adsenseConfigured &&
+  siteConfig.adsInPosts !== false && siteConfig.adsBeforeContent === true &&
+  (siteConfig.adsenseSlotBeforeContent ?? '').trim() !== '';
+const showAdAfter =
+  adsEnabled && adsenseConfigured &&
+  siteConfig.adsInPosts !== false && siteConfig.adsAfterContent !== false;
+
+const gcCode = (siteConfig.goatcounterCode ?? '').trim();
+
+const customMetaTags = (Array.isArray(siteConfig.customMetaTags) ? siteConfig.customMetaTags : [])
+  .filter((t) => t && t.key && t.content);
+
+const dateFmt = new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' });
+const published = pubDate ? dateFmt.format(new Date(pubDate)) : null;
+const updated = updatedDate ? dateFmt.format(new Date(updatedDate)) : null;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description,
+  image: [ogImage],
+  author: { '@type': 'Person', name: siteConfig.authorName, url: `${siteBase}/tentang/` },
+  publisher: { '@type': 'Organization', name: siteConfig.siteTitle },
+  datePublished: pubDate ? new Date(pubDate).toISOString() : undefined,
+  dateModified: (updatedDate ?? pubDate) ? new Date(updatedDate ?? pubDate!).toISOString() : undefined,
+  mainEntityOfPage: canonicalURL,
+};
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {/* ── SEO dasar ── */}
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {keywords && <meta name="keywords" content={keywords} />}
+    <meta name="author" content={siteConfig.authorName} />
+    <link rel="canonical" href={canonicalURL} />
+    <meta name="generator" content={Astro.generator} />
+
+    {/* ── Meta tag kustom dari /admin (tambah/edit sebebasnya) ── */}
+    {customMetaTags.map((t) =>
+      t.attribute === 'property'
+        ? <meta property={t.key} content={t.content} />
+        : <meta name={t.key} content={t.content} />
+    )}
+
+    {/* ── Google Search Console verification ── */}
+    {siteConfig.gscVerification && (
+      <meta name="google-site-verification" content={siteConfig.gscVerification} />
+    )}
+
+    {/* ── Open Graph ── */}
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content={siteConfig.siteTitle} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="id_ID" />
+    {pubDate && <meta property="article:published_time" content={new Date(pubDate).toISOString()} />}
+    {tags.map((tag) => <meta property="article:tag" content={tag} />)}
+
+    {/* ── Twitter Card ── */}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {/* ── JSON-LD (Article) ── */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
+
+    {/* ── GA4 / gtag.js — hanya jika diaktifkan ── */}
+    {ga4Ready && (
+      <>
+        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}></script>
+        <script is:inline define:vars={{ ga4Id }}>
+          window.dataLayer = window.dataLayer || [];
+          function gtag() { dataLayer.push(arguments); }
+          gtag('js', new Date());
+          gtag('config', ga4Id);
+        </script>
+      </>
+    )}
+
+    {/* ── Google AdSense: meta verifikasi + script (master switch) ── */}
+    {adsenseConfigured && (
+      <meta name="google-adsense-account" content={adsenseId} />
+    )}
+    {adsEnabled && adsenseConfigured && (
+      <script
+        is:inline
+        async
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`}
+        crossorigin="anonymous"
+      ></script>
+    )}
+
+    {/* ── Analytics ringan (Cloudflare Web Analytics / GoatCounter) ── */}
+    <AnalyticsBeacons />
+
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg') ?? '/favicon.svg'} />
+  </head>
+
+  <body>
+    <SiteHeader />
+
+    <main class="container article-wrapper">
+      <article class="article">
+        {category && <span class="chip chip-category">{category}</span>}
+        <h1 class="article-title">{title}</h1>
+        <p class="article-lede">{description}</p>
+        <div class="article-meta">
+          {published && <span>📅 {published}</span>}
+          {updated && <span>✏️ Diperbarui {updated}</span>}
+          <span>✍️ {siteConfig.authorName}</span>
+          {gcCode && (
+            <span class="view-counter" id="view-counter" title="Jumlah kunjungan halaman ini (GoatCounter)">
+              👁️ <span id="gc-view-count">…</span> tayang
+            </span>
+          )}
+        </div>
+
+        {heroImage && (
+          <figure class="hero">
+            <img src={withBase(heroImage)} alt={title} loading="eager" decoding="async" />
+          </figure>
+        )}
+
+        {/* Slot iklan SEBELUM isi artikel */}
+        {showAdBefore && (
+          <AdSlot slot={siteConfig.adsenseSlotBeforeContent} label="Advertisement" />
+        )}
+
+        <div class="prose">
+          <slot />
+        </div>
+
+        {/* Tombol bagikan */}
+        <ShareButtons url={canonicalURL} title={title} />
+
+        {tags.length > 0 && (
+          <div class="tags" aria-label="Tag artikel">
+            {tags.map((tag) => <span class="chip">#{tag}</span>)}
+          </div>
+        )}
+
+        {/* Slot iklan SETELAH isi artikel */}
+        {showAdAfter && <AdSlot slot={siteConfig.adsenseSlotInPost} />}
+
+        {/* Kartu profil penulis */}
+        <AuthorBox />
+      </article>
+    </main>
+
+    <SiteFooter />
+
+    {/* Counter kunjungan per artikel (GoatCounter) — disembunyikan jika gagal/404 */}
+    {gcCode && (
+      <script is:inline define:vars={{ gc: gcCode }}>
+        (async () => {
+          const wrap = document.getElementById('view-counter');
+          const el = document.getElementById('gc-view-count');
+          if (!wrap || !el) return;
+          try {
+            const path = window.location.pathname;
+            const res = await fetch(`https://${gc}.goatcounter.com/counter/${encodeURIComponent(path)}.json`);
+            if (!res.ok) throw new Error('counter not found');
+            const data = await res.json();
+            if (!data || !data.count) throw new Error('empty');
+            el.textContent = String(data.count);
+          } catch {
+            wrap.style.display = 'none';
+          }
+        })();
+      </script>
+    )}
+  </body>
+</html>
+
+<style>
+  :root {
+    --ink: #0f172a;
+    --muted: #475569;
+    --accent: #4f46e5;
+    --accent-soft: #eef2ff;
+    --paper: #ffffff;
+    --page: #f6f7fb;
+    --line: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { width: 100%; max-width: 1080px; margin-inline: auto; padding-inline: 1.25rem; }
+
+  /* Article */
+  .article-wrapper { padding-block: 2.5rem 3.5rem; }
+  .article { max-width: 780px; margin-inline: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 1.25rem; padding: clamp(1.5rem, 4vw, 3rem); box-shadow: 0 18px 50px -28px rgba(15, 23, 42, .35); }
+  .chip { display: inline-block; font-size: .72rem; font-weight: 700; letter-spacing: .06em; padding: .28rem .7rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); text-transform: uppercase; }
+  .article-title { font-size: clamp(1.75rem, 4.5vw, 2.6rem); line-height: 1.15; letter-spacing: -0.02em; margin: .8rem 0 .4rem; }
+  .article-lede { font-size: 1.05rem; color: var(--muted); margin: 0 0 .9rem; }
+  .article-meta { display: flex; flex-wrap: wrap; gap: 1rem; font-size: .82rem; color: var(--muted); border-block: 1px solid var(--line); padding-block: .6rem; margin-bottom: 1.5rem; }
+  .view-counter { color: #4f46e5; font-weight: 700; }
+  .hero { margin: 0 0 1.75rem; border-radius: 1rem; overflow: hidden; border: 1px solid var(--line); }
+  .hero img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+
+  /* Prose (isi artikel dari CMS) */
+  .prose :global(h2) { font-size: 1.5rem; letter-spacing: -0.01em; margin-top: 2rem; }
+  .prose :global(h3) { font-size: 1.2rem; margin-top: 1.5rem; }
+  .prose :global(a) { color: var(--accent); }
+  .prose :global(img) { max-width: 100%; border-radius: .75rem; border: 1px solid var(--line); }
+  .prose :global(pre) { background: #0f172a; color: #e2e8f0; padding: 1rem 1.25rem; border-radius: .75rem; overflow-x: auto; font-size: .85rem; }
+  .prose :global(code:not(pre code)) { background: var(--accent-soft); color: var(--accent); border-radius: .35rem; padding: .1em .4em; font-size: .9em; }
+  .prose :global(blockquote) { border-left: 4px solid var(--accent); background: var(--accent-soft); margin-inline: 0; padding: .75rem 1.25rem; border-radius: 0 .75rem .75rem 0; color: #3730a3; }
+  .tags { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.5rem; }
+  .tags .chip { background: #f1f5f9; color: var(--muted); text-transform: none; letter-spacing: 0; }
+</style>

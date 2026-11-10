@@ -1,0 +1,690 @@
+---
+/**
+ * src/pages/dashboard/analytics.astro
+ * ==================================
+ * Halaman Analisis & Pemantauan — dibangun dengan CSS murni Astro
+ * (zero-dependency, tidak butuh Tailwind), tanpa JS sama sekali.
+ *
+ * Isi:
+ *  - 4 kartu statistik (Total Views, Bounce Rate, Avg. Session, Active Ads)
+ *    → kartu "Active Ads" MENGIKUTI src/data/siteConfig.json (adsEnabled & adsenseId),
+ *      jadi statusnya berubah otomatis saat Anda ubah di /admin → ⚙️ Pengaturan Situs.
+ *  - Grafik area SVG 30 hari + donut sumber traffic + bar chart halaman teratas
+ *    (data contoh/placeholder — ganti dengan data asli via Looker Studio)
+ *  - Embed laporan Looker Studio (resmi dari Google, gratis). Tempel URL embed di
+ *    /admin → Pengaturan Situs → [ANALYTICS] Looker Studio Embed URL.
+ *    SELAMA KOSONG, halaman ini menampilkan empty state dengan instruksi.
+ *  - Tombol pintas ke GA4 & Google Search Console.
+ *
+ * CATATAN PENTING:
+ *  - GA4 TIDAK punya iframe embed resmi — embed dilakukan lewat Looker Studio
+ *    (ketik "lookerstudio.google.com" → buat laporan dari sumber data GA4 Anda).
+ *  - Halaman ini bersifat PUBLIK (GitHub Pages statis). Jangan taruh data rahasia.
+ *    Meta robots noindex sudah dipasang. JANGAN pernah menyimpan API secret di sini.
+ */
+import siteConfig from '../../data/siteConfig.json';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const withBase = (p: string) => `${base}${p.startsWith('/') ? p : `/${p}`}`;
+
+const gcCode = (siteConfig.goatcounterCode ?? '').trim();
+const cfBeacon = (siteConfig.cloudflareAnalyticsToken ?? '').trim();
+const lookerEmbedUrl = (siteConfig.lookerStudioEmbedUrl ?? '').trim();
+const lookerReady = lookerEmbedUrl.startsWith('https://lookerstudio.google.com/embed/');
+
+const adsEnabled = siteConfig.adsEnabled === true;
+const adsenseId = (siteConfig.adsenseId ?? '').trim();
+const adsenseReady = adsEnabled && adsenseId !== '' && !adsenseId.includes('0000000000000000');
+const maskedAdsense = adsenseId
+  ? `ca-pub-••••••••${adsenseId.slice(-4)}`
+  : '—';
+
+const today = new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date());
+
+// ── Data contoh (placeholder) untuk grafik SVG ──────────────────────────────
+const areaLine =
+  '40,147 63,143 86,140 109,144 132,132 155,126 178,141 201,136 224,123 247,117 270,120 293,112 316,114 339,127 362,121 385,104 408,96 431,105 454,90 477,81 500,88 523,76 546,82 569,65 592,69 615,59 638,54 661,61 684,43 707,33';
+const areaFill = `M${areaLine.replaceAll(' ', ' L')} L707,178 L40,178 Z`;
+
+const topPages = [
+  { path: '/blog/selamat-datang/', views: '12,4K', pct: 100 },
+  { path: '/blog/tutorial-astro-5/', views: '8,7K', pct: 70 },
+  { path: '/blog/deploy-github-pages/', views: '5,2K', pct: 42 },
+  { path: '/blog/seo-checklist-2026/', views: '3,8K', pct: 31 },
+  { path: '/', views: '2,1K', pct: 17 },
+];
+
+const tableRows = [
+  { path: '/blog/selamat-datang/', views: '12,431', time: '5m 12s', bounce: '31%', trend: 'up' },
+  { path: '/blog/tutorial-astro-5/', views: '8,752', time: '4m 48s', bounce: '35%', trend: 'up' },
+  { path: '/blog/deploy-github-pages/', views: '5,214', time: '6m 03s', bounce: '28%', trend: 'up' },
+  { path: '/blog/seo-checklist-2026/', views: '3,805', time: '3m 41s', bounce: '44%', trend: 'down' },
+  { path: '/', views: '2,145', time: '1m 58s', bounce: '52%', trend: 'down' },
+];
+
+const donut = [
+  { label: 'Organic Search', pct: 46, color: '#818cf8', dash: '156.07 183.22', offset: 0 },
+  { label: 'Direct', pct: 22, color: '#22d3ee', dash: '74.64 264.65', offset: -156.07 },
+  { label: 'Social', pct: 18, color: '#34d399', dash: '61.07 278.22', offset: -230.71 },
+  { label: 'Referral & lainnya', pct: 14, color: '#f59e0b', dash: '47.5 291.79', offset: -291.78 },
+];
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Analytics — Admin Dashboard · {siteConfig.siteTitle}</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>📊</text></svg>"
+    />
+  </head>
+
+  <body>
+    <div class="shell">
+      {/* ══════════ SIDEBAR ══════════ */}
+      <aside class="sidebar">
+        <a class="brand" href={withBase('/dashboard/analytics/')}>
+          <span class="brand-mark">📊</span>
+          <span class="brand-text">
+            <strong>Admin Dashboard</strong>
+            <small>{siteConfig.siteTitle}</small>
+          </span>
+        </a>
+
+        <nav class="side-nav" aria-label="Menu dashboard">
+          <p class="side-label">MENU</p>
+          <a class="side-link active" href={withBase('/dashboard/analytics/')} aria-current="page">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 4 4 5-6"/></svg>
+            Analytics
+          </a>
+          <p class="side-label">KONTEN &amp; PENGATURAN</p>
+          <a class="side-link" href={withBase('/admin/')}>
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+            Kelola Artikel <span class="ext">↗</span>
+          </a>
+          <a class="side-link" href={withBase('/admin/')}>
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Pengaturan Situs <span class="ext">↗</span>
+          </a>
+          <p class="side-label">SITUS</p>
+          <a class="side-link" href={withBase('/')}>
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg>
+            Lihat Situs Publik
+          </a>
+        </nav>
+
+        <div class="side-foot">
+          <div class="user-chip">
+            <span class="avatar">RA</span>
+            <span>
+              <strong>Administrator</strong>
+              <small>Login via GitHub PAT</small>
+            </span>
+          </div>
+          <p class="deploy-note"><span class="dot-live"></span> GitHub Pages · build otomatis setiap commit</p>
+        </div>
+      </aside>
+
+      {/* ══════════ KONTEN UTAMA ══════════ */}
+      <main class="main">
+        {/* Topbar */}
+        <header class="topbar">
+          <div>
+            <p class="crumb">Dashboard <span aria-hidden="true">/</span> <strong>Analytics</strong></p>
+            <h1>Analisis &amp; Pemantauan</h1>
+            <p class="subtitle">Ringkasan performa {siteConfig.siteTitle} · Diperbarui {today}</p>
+          </div>
+          <div class="topbar-actions">
+            <a class="btn btn-ghost" href="https://analytics.google.com/" target="_blank" rel="noopener">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M9 7h8v8"/></svg>
+              Buka GA4
+            </a>
+            <a class="btn btn-primary" href="https://search.google.com/search-console" target="_blank" rel="noopener">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+              Search Console
+            </a>
+          </div>
+        </header>
+
+        {/* Info: data kartu = contoh */}
+        <div class="notice" role="note">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M12 12v4"/></svg>
+          <p><strong>Data kartu &amp; grafik di bawah adalah contoh (placeholder).</strong> Untuk angka <em>real-time</em> dari Google, sematkan laporan Looker Studio di bagian bawah halaman — panduannya ada di <code>PANDUAN_INSTALASI.md</code> §11.</p>
+        </div>
+
+        {/* ══════════ 4 KARTU STATISTIK ══════════ */}
+        <section class="stat-grid" aria-label="Kartu statistik">
+          <article class="card stat-card">
+            <div class="stat-top">
+              <span class="stat-label">Total Views</span>
+              <span class="stat-icon indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            </div>
+            <p class="stat-value">48.214</p>
+            <span class="delta delta-up">▲ 12,5%</span>
+            <span class="stat-foot">vs. 30 hari sebelumnya</span>
+          </article>
+
+          <article class="card stat-card">
+            <div class="stat-top">
+              <span class="stat-label">Bounce Rate</span>
+              <span class="stat-icon cyan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+            </div>
+            <p class="stat-value">38,4%</p>
+            <span class="delta delta-good">▼ 3,2%</span>
+            <span class="stat-foot">lebih rendah = lebih baik</span>
+          </article>
+
+          <article class="card stat-card">
+            <div class="stat-top">
+              <span class="stat-label">Avg. Session</span>
+              <span class="stat-icon emerald"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+            </div>
+            <p class="stat-value">4<span class="unit">m</span> 32<span class="unit">s</span></p>
+            <span class="delta delta-up">▲ 18,1%</span>
+            <span class="stat-foot">durasi rata-rata kunjungan</span>
+          </article>
+
+          <article class="card stat-card">
+            <div class="stat-top">
+              <span class="stat-label">Active Ads</span>
+              <span class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></span>
+            </div>
+            <p class="stat-value">
+              {adsEnabled ? (
+                <span class={adsenseReady ? 'ads-on' : 'ads-warn'}>{adsenseReady ? 'AKTIF' : 'BELUM SIAP'}</span>
+              ) : (
+                <span class="ads-off">NONAKTIF</span>
+              )}
+            </p>
+            <span class={`delta ${adsenseReady ? 'delta-up' : 'delta-muted'}`}>
+              {adsenseReady ? 'AdSense ter-load di situs' : adsEnabled ? 'Isi Publisher ID di Pengaturan' : 'Master switch OFF'}
+            </span>
+            <span class="stat-foot">Publisher ID: <code>{maskedAdsense}</code></span>
+          </article>
+        </section>
+
+        {/* ══════════ GRAFIK AREA 30 HARI ══════════ */}
+        <section class="card chart-card" aria-label="Grafik pageviews 30 hari">
+          <div class="card-head">
+            <div>
+              <h2>Pageviews — 30 Hari Terakhir</h2>
+              <p class="card-sub">1 Okt – 9 Nov 2026 · seluruh halaman</p>
+            </div>
+            <div class="legend">
+              <span class="legend-item"><span class="legend-dot indigo"></span>Pageviews</span>
+              <span class="legend-item"><span class="legend-dot muted"></span>Target 40K</span>
+            </div>
+          </div>
+
+          <svg class="area-chart" viewBox="0 0 740 210" role="img" aria-label="Tren pageviews naik dari sekitar 820 menjadi 3.680 per hari" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#818cf8" stop-opacity="0.45"/>
+                <stop offset="1" stop-color="#818cf8" stop-opacity="0.02"/>
+              </linearGradient>
+              <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#818cf8"/>
+                <stop offset="0.5" stop-color="#22d3ee"/>
+                <stop offset="1" stop-color="#34d399"/>
+              </linearGradient>
+            </defs>
+
+            {/* Gridlines + label Y */}
+            <g class="grid">
+              <line x1="40" y1="178" x2="707" y2="178"/>
+              <line x1="40" y1="139" x2="707" y2="139"/>
+              <line x1="40" y1="100" x2="707" y2="100"/>
+              <line x1="40" y1="61" x2="707" y2="61"/>
+              <line x1="40" y1="22" x2="707" y2="22"/>
+            </g>
+            <g class="y-labels">
+              <text x="32" y="182" text-anchor="end">0</text>
+              <text x="32" y="143" text-anchor="end">1K</text>
+              <text x="32" y="104" text-anchor="end">2K</text>
+              <text x="32" y="65" text-anchor="end">3K</text>
+              <text x="32" y="26" text-anchor="end">4K</text>
+            </g>
+            {/* Target line putus-putus */}
+            <line class="target-line" x1="40" y1="53" x2="707" y2="53"/>
+
+            {/* Area + line */}
+            <path class="area-fill" d={areaFill}></path>
+            <polyline class="area-line" points={areaLine}></polyline>
+            <circle class="end-dot" cx="707" cy="33" r="4.5"></circle>
+
+            {/* Label X */}
+            <g class="x-labels">
+              <text x="40" y="202">12 Okt</text>
+              <text x="183" y="202">18 Okt</text>
+              <text x="326" y="202">24 Okt</text>
+              <text x="469" y="202">30 Okt</text>
+              <text x="600" y="202">5 Nov</text>
+              <text x="707" y="202" text-anchor="end">9 Nov</text>
+            </g>
+          </svg>
+        </section>
+
+        {/* ══════════ BAR + DONUT ══════════ */}
+        <div class="two-col">
+          <section class="card" aria-label="Halaman terpopuler">
+            <div class="card-head compact">
+              <div>
+                <h2>Halaman Terpopuler</h2>
+                <p class="card-sub">Berdasarkan pageviews 30 hari</p>
+              </div>
+            </div>
+            <ul class="bar-list">
+              {topPages.map((p) => (
+                <li class="bar-item">
+                  <div class="bar-meta">
+                    <code>{p.path}</code>
+                    <span>{p.views}</span>
+                  </div>
+                  <div class="bar-track"><span class="bar-fill" style={`width:${p.pct}%`}></span></div>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section class="card" aria-label="Sumber traffic">
+            <div class="card-head compact">
+              <div>
+                <h2>Sumber Traffic</h2>
+                <p class="card-sub">Distribusi sesi berdasarkan kanal</p>
+              </div>
+            </div>
+            <div class="donut-wrap">
+              <svg class="donut" viewBox="0 0 140 140" role="img" aria-label="Organic Search 46 persen, Direct 22 persen, Social 18 persen, Referral 14 persen">
+                <g transform="rotate(-90 70 70)">
+                  <circle class="donut-bg" cx="70" cy="70" r="54"/>
+                  {donut.map((s) => (
+                    <circle class="donut-seg" cx="70" cy="70" r="54" stroke={s.color} stroke-dasharray={s.dash} stroke-dashoffset={s.offset}/>
+                  ))}
+                </g>
+                <text class="donut-total" x="70" y="66" text-anchor="middle">48,2K</text>
+                <text class="donut-sub" x="70" y="84" text-anchor="middle">views</text>
+              </svg>
+              <ul class="donut-legend">
+                {donut.map((s) => (
+                  <li><span class="legend-dot" style={`background:${s.color}`}></span>{s.label}<strong>{s.pct}%</strong></li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        </div>
+
+        {/* ══════════ TABEL PERFORMA ══════════ */}
+        <section class="card table-card" aria-label="Tabel performa halaman">
+          <div class="card-head compact">
+            <div>
+              <h2>Performa per Halaman</h2>
+              <p class="card-sub">Data contoh — angka asli tersedia di GA4 / Looker Studio</p>
+            </div>
+            <a class="btn btn-ghost small" href="https://analytics.google.com/" target="_blank" rel="noopener">Lihat semua <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Halaman</th><th>Views</th><th>Avg. Time</th><th>Bounce</th><th>Tren</th></tr>
+              </thead>
+              <tbody>
+                {tableRows.map((r) => (
+                  <tr>
+                    <td><code>{r.path}</code></td>
+                    <td class="num">{r.views}</td>
+                    <td class="num">{r.time}</td>
+                    <td class="num">{r.bounce}</td>
+                    <td>{r.trend === 'up'
+                      ? <span class="trend up">▲ naik</span>
+                      : <span class="trend down">▼ turun</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* ══════════ ANALITIK RINGAN (tanpa cookie) ══════════ */}
+        <section class="card light-analytics" aria-label="Analitik ringan tanpa cookie">
+          <div class="card-head">
+            <div>
+              <h2>Analitik Ringan — Tanpa Cookie, Tanpa IP</h2>
+              <p class="card-sub">Statistik agregat untuk blog statis · privacy-first · gratis · cocok untuk skala kecil</p>
+            </div>
+            <span class="pill pill-green">PRIVACY-FIRST</span>
+          </div>
+
+          <div class="la-grid">
+            <div class="la-provider">
+              <div class="la-head">
+                <span class="la-icon" aria-hidden="true">☁️</span>
+                <div>
+                  <h3>Cloudflare Web Analytics</h3>
+                  <p class="la-sub">Halaman, sumber traffic &amp; referrer, negara, perangkat, Core Web Vitals — agregat, tanpa cookie.</p>
+                </div>
+                <span class={`la-status ${cfBeacon ? 'on' : 'off'}`}>{cfBeacon ? 'AKTIF' : 'BELUM DISIAPKAN'}</span>
+              </div>
+              {cfBeacon ? (
+                <div class="la-body">
+                  <p class="la-ok">✅ Beacon terpasang di semua halaman (token <code>{cfBeacon.slice(0, 6)}…</code>). Data muncul di dashboard Cloudflare, bukan di halaman ini.</p>
+                  <a class="btn btn-primary small" href="https://dash.cloudflare.com/" target="_blank" rel="noopener">Buka Cloudflare Dashboard → Analytics → Web Analytics ↗</a>
+                </div>
+              ) : (
+                <ol class="la-steps">
+                  <li>Dashboard Cloudflare → <strong>Analytics &amp; Logs → Web Analytics</strong> → <strong>Add a site</strong> (pilih situs Pages Anda).</li>
+                  <li>Salin <strong>token</strong> yang diberikan (nilai publik — aman di-commit).</li>
+                  <li><a href={withBase('/admin/')}>/admin</a> → <strong>⚙️ Pengaturan Situs</strong> → <strong>[ANALYTICS] Cloudflare Web Analytics — Token</strong> → tempel → <strong>Publish</strong>.</li>
+                  <li>Selesai — traffic dicatat otomatis, halaman ini menampilkan status AKTIF.</li>
+                </ol>
+              )}
+            </div>
+
+            <div class="la-provider">
+              <div class="la-head">
+                <span class="la-icon" aria-hidden="true">🐐</span>
+                <div>
+                  <h3>GoatCounter</h3>
+                  <p class="la-sub">Counter open-source — menampilkan "👁️ N tayang" di setiap artikel &amp; statistik ringan di dashboard sendiri.</p>
+                </div>
+                <span class={`la-status ${gcCode ? 'on' : 'off'}`}>{gcCode ? 'AKTIF' : 'BELUM DISIAPKAN'}</span>
+              </div>
+              {gcCode ? (
+                <div class="la-body">
+                  <p class="la-ok">✅ Counter aktif. Artikel Anda menampilkan jumlah tayang (cache ±4 jam).</p>
+                  <p class="la-hint">WAJIB: Settings → centang <strong>"Allow adding visitor counts on your website"</strong>, jika belum halaman artikel tidak menampilkan angka.</p>
+                  <a class="btn btn-ghost small" href={`https://${gcCode}.goatcounter.com`} target="_blank" rel="noopener">Buka dashboard GoatCounter ↗</a>
+                </div>
+              ) : (
+                <ol class="la-steps">
+                  <li>Daftar gratis di <a href="https://www.goatcounter.com/" target="_blank" rel="noopener">goatcounter.com</a> → <strong>Add site</strong> → pilih subdomain (mis. <code>devdian.goatcounter.com</code>) atau self-hosted.</li>
+                  <li>Di <strong>Settings</strong> GoatCounter, centang <strong>"Allow adding visitor counts on your website"</strong>.</li>
+                  <li><a href={withBase('/admin/')}>/admin</a> → <strong>⚙️ Pengaturan Situs</strong> → <strong>[ANALYTICS] GoatCounter — site code</strong> → isi <code>devdian</code> → <strong>Publish</strong>.</li>
+                  <li>Beres — tiap artikel menampilkan "👁️ N tayang" dan referrer terlihat di dashboard GoatCounter.</li>
+                </ol>
+              )}
+            </div>
+          </div>
+
+          <div class="ip-note" role="note">
+            🔒 <strong>Soal "cek IP pengunjung":</strong> hosting statis tidak memiliki server yang melihat koneksi mentah, dan itu disengaja — menyimpan IP pengunjung tanpa izin melanggar UU PDP &amp; GDPR. Yang bisa Anda lihat secara sah: <strong>negara/kota (agregat), sumber &amp; referrer, perangkat/browser, halaman terpopuler</strong> (lewat Cloudflare / GoatCounter / GA4). Untuk <strong>ancaman keamanan</strong> (serangan bot, IP penyerang), lihat <strong>Security Events</strong> di dashboard Cloudflare — di situlah IP tercatat, dan memang semestinya di situ.
+          </div>
+        </section>
+
+        {/* ══════════ LOOKER STUDIO EMBED ══════════ */}
+        <section class="card looker-card" id="looker-studio" aria-label="Laporan Looker Studio">
+          <div class="card-head">
+            <div>
+              <h2>Laporan Google Analytics 4 — Live</h2>
+              <p class="card-sub">Embed resmi Looker Studio · data real-time dari properti GA4 Anda</p>
+            </div>
+            <span class="pill">LOOKER STUDIO</span>
+          </div>
+
+          {lookerReady ? (
+            <div class="looker-frame-wrap">
+              <iframe
+                src={lookerEmbedUrl}
+                title="Laporan Google Analytics 4 di Looker Studio"
+                width="100%"
+                height="640"
+                style="border:0; border-radius:.75rem; background:#0b1220"
+                loading="lazy"
+                allowfullscreen
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+              <a class="btn btn-ghost small open-looker" href={lookerEmbedUrl.replace('/embed/', '/reporting/')} target="_blank" rel="noopener">Buka laporan di tab baru ↗</a>
+            </div>
+          ) : (
+            <div class="looker-empty">
+              <div class="empty-illustration" aria-hidden="true">
+                <svg viewBox="0 0 120 96" fill="none">
+                  <rect x="4" y="10" width="112" height="76" rx="10" stroke="#334155" stroke-width="3"/>
+                  <path d="M20 62l20-18 16 14 20-26 24 22" stroke="url(#lg)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="100" cy="22" r="10" fill="#f59e0b" opacity=".9"/>
+                  <path d="M96.5 22h7M100 18.5v7" stroke="#0b1220" stroke-width="2" stroke-linecap="round"/>
+                  <defs>
+                    <linearGradient id="lg" x1="20" y1="60" x2="100" y2="32">
+                      <stop stop-color="#818cf8"/><stop offset="1" stop-color="#22d3ee"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <h3>Looker Studio belum disematkan</h3>
+              <p>GA4 tidak punya iframe embed resmi — cara resminya lewat <strong>Looker Studio</strong> (gratis). Ikuti 3 langkah ini:</p>
+              <ol class="empty-steps">
+                <li>Buka <a href="https://lookerstudio.google.com/" target="_blank" rel="noopener">lookerstudio.google.com</a> → <strong>Buat → Laporan</strong> → pilih sumber data <strong>Google Analytics</strong> → pilih properti GA4 Anda → Tambahkan.</li>
+                <li>Klik <strong>Bagikan</strong> → ubah akses menjadi <strong>"Siapa pun yang memiliki link dapat melihat"</strong>, lalu <strong>File → Sematkan laporan</strong> → salin URL iframe (format: <code>lookerstudio.google.com/embed/reporting/…</code>).</li>
+                <li>Buka <a href={withBase('/admin/')}>/admin</a> → <strong>⚙️ Pengaturan Situs</strong> → tempel di kolom <strong>[ANALYTICS] Looker Studio — Embed URL</strong> → <strong>Publish</strong>. Halaman ini otomatis menampilkan laporan asli.</li>
+              </ol>
+              <a class="btn btn-primary" href="https://lookerstudio.google.com/" target="_blank" rel="noopener">Buka Looker Studio ↗</a>
+            </div>
+          )}
+        </section>
+
+        <footer class="page-foot">
+          <p>Admin Dashboard · {siteConfig.siteTitle} · Halaman statis yang ikut di-build oleh Astro.</p>
+          <p>Angka pada kartu &amp; grafik adalah <strong>contoh ilustratif</strong>; angka asli tampil di embed Looker Studio / GA4. Jangan masukkan data kredensial ke halaman ini.</p>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>
+
+<style>
+  :root {
+    --bg: #0b1120;
+    --panel: #101a30;
+    --panel-2: #0e1730;
+    --border: rgba(148, 163, 184, 0.16);
+    --border-soft: rgba(148, 163, 184, 0.09);
+    --text: #e2e8f0;
+    --muted: #8aa0bf;
+    --indigo: #818cf8;
+    --cyan: #22d3ee;
+    --emerald: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --radius: 1rem;
+    --shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.65);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1100px 500px at 85% -10%, rgba(99, 102, 241, 0.22), transparent 60%),
+      radial-gradient(900px 480px at -10% 110%, rgba(34, 211, 238, 0.12), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  code { font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: .85em; color: #c4b5fd; }
+  a { color: var(--cyan); }
+
+  .shell { display: grid; grid-template-columns: 268px minmax(0, 1fr); min-height: 100vh; }
+
+  /* ══════════ SIDEBAR ══════════ */
+  .sidebar {
+    position: sticky; top: 0; align-self: start; height: 100vh;
+    display: flex; flex-direction: column; gap: 1.1rem;
+    padding: 1.25rem 1rem 1.25rem;
+    background: linear-gradient(180deg, rgba(16, 26, 48, .92), rgba(11, 17, 32, .92));
+    border-right: 1px solid var(--border-soft);
+    backdrop-filter: blur(10px);
+  }
+  .brand { display: flex; gap: .7rem; align-items: center; text-decoration: none; color: var(--text); padding: .35rem .4rem; }
+  .brand-mark { display: grid; place-items: center; width: 40px; height: 40px; border-radius: .75rem; font-size: 1.15rem; background: linear-gradient(135deg, #4f46e5, #0891b2); box-shadow: 0 8px 22px -8px rgba(79, 70, 229, .8); }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+  .brand-text strong { font-size: .9rem; letter-spacing: .01em; }
+  .brand-text small { color: var(--muted); font-size: .68rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .side-nav { display: flex; flex-direction: column; gap: .2rem; overflow-y: auto; }
+  .side-label { margin: .9rem .65rem .3rem; font-size: .62rem; font-weight: 800; letter-spacing: .18em; color: #5b6d8c; }
+  .side-link { display: flex; align-items: center; gap: .65rem; padding: .55rem .65rem; border-radius: .65rem; text-decoration: none; color: #b7c4dc; font-size: .875rem; font-weight: 600; border: 1px solid transparent; transition: all .18s ease; }
+  .side-link:hover { background: rgba(129, 140, 248, .08); color: #fff; }
+  .side-link.active { background: linear-gradient(135deg, rgba(79, 70, 229, .32), rgba(8, 145, 178, .22)); border-color: rgba(129, 140, 248, .35); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.06); }
+  .side-link .ext { margin-left: auto; color: #5b6d8c; font-size: .75rem; }
+  .ic { width: 18px; height: 18px; flex: none; }
+
+  .side-foot { margin-top: auto; display: flex; flex-direction: column; gap: .75rem; border-top: 1px solid var(--border-soft); padding-top: 1rem; }
+  .user-chip { display: flex; align-items: center; gap: .65rem; padding: .35rem .4rem; }
+  .avatar { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 999px; font-size: .72rem; font-weight: 800; color: #0b1120; background: linear-gradient(135deg, #22d3ee, #34d399); }
+  .user-chip strong { display: block; font-size: .8rem; }
+  .user-chip small { color: var(--muted); font-size: .68rem; }
+  .deploy-note { display: flex; align-items: center; gap: .45rem; margin: 0; padding: .5rem .65rem; font-size: .68rem; color: #7de3a8; background: rgba(52, 211, 153, .08); border: 1px solid rgba(52, 211, 153, .22); border-radius: .6rem; }
+  .dot-live { width: 7px; height: 7px; border-radius: 999px; background: #34d399; box-shadow: 0 0 0 0 rgba(52, 211, 153, .6); animation: pulse 2s infinite; }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(52, 211, 153, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); } }
+
+  /* ══════════ MAIN ══════════ */
+  .main { padding: 1.5rem clamp(1rem, 3vw, 2.25rem) 2rem; display: flex; flex-direction: column; gap: 1.1rem; max-width: 1240px; }
+
+  .topbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-top: .25rem; }
+  .crumb { margin: 0 0 .15rem; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .crumb strong { color: var(--indigo); }
+  h1 { margin: 0; font-size: clamp(1.5rem, 2.6vw, 2rem); letter-spacing: -0.02em; }
+  .subtitle { margin: .25rem 0 0; color: var(--muted); font-size: .85rem; }
+  .topbar-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+
+  .btn { display: inline-flex; align-items: center; gap: .45rem; text-decoration: none; font-weight: 700; font-size: .82rem; border-radius: .7rem; padding: .62rem 1rem; border: 1px solid var(--border); cursor: pointer; transition: all .18s ease; }
+  .btn .ic { width: 16px; height: 16px; }
+  .btn-primary { background: linear-gradient(135deg, #4f46e5, #0e7490); color: #fff; border-color: rgba(129, 140, 248, .5); box-shadow: 0 12px 30px -12px rgba(79, 70, 229, .7); }
+  .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.12); }
+  .btn-ghost { background: rgba(148, 163, 184, .06); color: var(--text); }
+  .btn-ghost:hover { background: rgba(148, 163, 184, .12); }
+  .btn.small { padding: .4rem .8rem; font-size: .75rem; }
+
+  .notice { display: flex; gap: .65rem; align-items: flex-start; background: rgba(251, 191, 36, .07); border: 1px solid rgba(251, 191, 36, .28); color: #fde68a; border-radius: .8rem; padding: .65rem .85rem; font-size: .8rem; }
+  .notice p { margin: 0; }
+  .notice .ic { margin-top: .1rem; }
+  .notice code { color: #fcd34d; }
+
+  /* ══════════ CARDS ══════════ */
+  .card { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 1.1rem 1.2rem; box-shadow: var(--shadow); }
+  .card h2 { margin: 0; font-size: 1rem; letter-spacing: -0.01em; }
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: .75rem; }
+  .card-head.compact { align-items: center; }
+  .card-sub { margin: .2rem 0 0; font-size: .75rem; color: var(--muted); }
+
+  /* Stat cards */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr)); gap: .9rem; }
+  .stat-card { display: flex; flex-direction: column; gap: .28rem; position: relative; overflow: hidden; }
+  .stat-card::after { content: ''; position: absolute; inset: auto -20% -55% -20%; height: 90px; background: radial-gradient(closest-side, rgba(129, 140, 248, .16), transparent); pointer-events: none; }
+  .stat-top { display: flex; justify-content: space-between; align-items: center; }
+  .stat-label { font-size: .68rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .stat-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: .65rem; }
+  .stat-icon svg { width: 18px; height: 18px; }
+  .stat-icon.indigo { background: rgba(129, 140, 248, .14); color: var(--indigo); }
+  .stat-icon.cyan { background: rgba(34, 211, 238, .12); color: var(--cyan); }
+  .stat-icon.emerald { background: rgba(52, 211, 153, .12); color: var(--emerald); }
+  .stat-icon.amber { background: rgba(251, 191, 36, .12); color: var(--amber); }
+  .stat-value { margin: .15rem 0 0; font-size: clamp(1.6rem, 2.4vw, 2.05rem); font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .stat-value .unit { font-size: .55em; font-weight: 700; color: var(--muted); }
+  .ads-on { color: var(--emerald); }
+  .ads-off { color: var(--muted); }
+  .ads-warn { color: var(--amber); font-size: .8em; }
+  .delta { font-size: .72rem; font-weight: 700; display: inline-flex; align-items: center; gap: .3rem; }
+  .delta-up { color: var(--emerald); }
+  .delta-good { color: var(--cyan); }
+  .delta-muted { color: var(--amber); }
+  .stat-foot { font-size: .68rem; color: var(--muted); }
+  .stat-foot code { font-size: .68rem; }
+
+  /* Area chart */
+  .legend { display: flex; gap: .9rem; flex-wrap: wrap; }
+  .legend-item { display: inline-flex; align-items: center; gap: .4rem; font-size: .72rem; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+  .legend-dot.indigo { background: var(--indigo); }
+  .legend-dot.muted { background: #475569; }
+  .area-chart { width: 100%; height: auto; display: block; }
+  .area-chart .grid line { stroke: rgba(148, 163, 184, .12); stroke-dasharray: 3 5; }
+  .area-chart .y-labels text, .area-chart .x-labels text { fill: #475569; font-size: 10px; font-family: ui-sans-serif, system-ui, sans-serif; }
+  .area-chart .target-line { stroke: #475569; stroke-width: 1.5; stroke-dasharray: 6 6; }
+  .area-chart .area-fill { fill: url(#areaGrad); }
+  .area-chart .area-line { fill: none; stroke: url(#lineGrad); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+  .area-chart .end-dot { fill: #34d399; stroke: #0b1120; stroke-width: 2; }
+
+  /* Bar list + donut */
+  .two-col { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: .9rem; }
+  .bar-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .8rem; }
+  .bar-meta { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; margin-bottom: .3rem; }
+  .bar-meta code { font-size: .72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-meta span { font-size: .75rem; font-weight: 800; color: #c7d2fe; font-variant-numeric: tabular-nums; }
+  .bar-track { height: 8px; border-radius: 999px; background: rgba(148, 163, 184, .12); overflow: hidden; }
+  .bar-fill { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #4f46e5, #22d3ee); }
+
+  .donut-wrap { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
+  .donut { width: 132px; height: 132px; flex: none; }
+  .donut-bg { fill: none; stroke: rgba(148, 163, 184, .12); stroke-width: 16; }
+  .donut-seg { fill: none; stroke-width: 16; }
+  .donut-total { fill: #f1f5f9; font-size: 17px; font-weight: 800; }
+  .donut-sub { fill: #475569; font-size: 8.5px; letter-spacing: .14em; text-transform: uppercase; }
+  .donut-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .45rem; font-size: .78rem; color: #b7c4dc; }
+  .donut-legend li { display: flex; align-items: center; gap: .5rem; }
+  .donut-legend strong { margin-left: auto; padding-left: .75rem; color: #fff; font-variant-numeric: tabular-nums; }
+
+  /* Table */
+  .table-scroll { overflow-x: auto; margin: 0 -0.25rem; padding: 0 .25rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .8rem; min-width: 640px; }
+  th { text-align: left; font-size: .65rem; letter-spacing: .14em; text-transform: uppercase; color: #5b6d8c; padding: .45rem .6rem; border-bottom: 1px solid var(--border); }
+  td { padding: .55rem .6rem; border-bottom: 1px solid var(--border-soft); color: #cbd5e1; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { font-variant-numeric: tabular-nums; }
+  .trend { font-size: .7rem; font-weight: 800; padding: .18rem .5rem; border-radius: 999px; }
+  .trend.up { color: #34d399; background: rgba(52, 211, 153, .1); }
+  .trend.down { color: #f87171; background: rgba(248, 113, 113, .1); }
+
+  /* Looker Studio */
+  .pill { font-size: .62rem; font-weight: 800; letter-spacing: .16em; color: #0b1120; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 999px; padding: .3rem .7rem; height: max-content; }
+  .looker-frame-wrap { display: flex; flex-direction: column; gap: .6rem; }
+  .open-looker { align-self: flex-end; }
+  .looker-empty { text-align: center; padding: 1rem .5rem .75rem; display: flex; flex-direction: column; align-items: center; gap: .6rem; }
+  .empty-illustration svg { width: 120px; height: auto; }
+  .looker-empty h3 { margin: .25rem 0 0; font-size: 1.05rem; }
+  .looker-empty > p { margin: 0; color: var(--muted); font-size: .85rem; max-width: 46ch; }
+  .empty-steps { text-align: left; margin: .35rem 0 .25rem; padding-left: 1.4rem; max-width: 62ch; display: flex; flex-direction: column; gap: .5rem; font-size: .82rem; color: #b7c4dc; }
+  .empty-steps code { font-size: .72rem; }
+
+  .page-foot { text-align: center; color: #5b6d8c; font-size: .7rem; padding: .25rem 0 1rem; }
+  .page-foot p { margin: .2rem 0; }
+
+  /* Analitik ringan */
+  .pill-green { background: linear-gradient(135deg, #34d399, #10b981); color: #052e1c; }
+  .la-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: .9rem; }
+  .la-provider { background: rgba(148, 163, 184, .05); border: 1px solid var(--border-soft); border-radius: .8rem; padding: .85rem .95rem; display: flex; flex-direction: column; gap: .65rem; }
+  .la-head { display: flex; align-items: flex-start; gap: .6rem; }
+  .la-head h3 { margin: 0; font-size: .9rem; }
+  .la-icon { font-size: 1.3rem; line-height: 1; }
+  .la-sub { margin: .15rem 0 0; font-size: .7rem; color: var(--muted); }
+  .la-status { margin-left: auto; flex: none; font-size: .58rem; font-weight: 800; letter-spacing: .12em; padding: .28rem .55rem; border-radius: 999px; }
+  .la-status.on { color: #34d399; background: rgba(52, 211, 153, .12); border: 1px solid rgba(52, 211, 153, .35); }
+  .la-status.off { color: #fbbf24; background: rgba(251, 191, 36, .1); border: 1px solid rgba(251, 191, 36, .3); }
+  .la-body { display: flex; flex-direction: column; gap: .5rem; align-items: flex-start; }
+  .la-ok { margin: 0; font-size: .78rem; color: #a7f3d0; }
+  .la-hint { margin: 0; font-size: .7rem; color: #fcd34d; }
+  .la-steps { margin: 0; padding-left: 1.15rem; display: flex; flex-direction: column; gap: .35rem; font-size: .75rem; color: #b7c4dc; }
+  .la-steps code { font-size: .68rem; }
+  .ip-note { margin-top: .8rem; font-size: .72rem; color: #bfdbfe; background: rgba(96, 165, 250, .08); border: 1px solid rgba(96, 165, 250, .25); border-radius: .7rem; padding: .6rem .8rem; }
+
+  /* ══════════ RESPONSIVE ══════════ */
+  @media (max-width: 1024px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; flex-direction: row; align-items: center; flex-wrap: wrap; gap: .6rem; border-right: none; border-bottom: 1px solid var(--border-soft); padding: .6rem .9rem; }
+    .brand { padding: 0; }
+    .brand-text small { display: none; }
+    .side-nav { flex-direction: row; flex-wrap: wrap; align-items: center; gap: .3rem; }
+    .side-label { display: none; }
+    .side-link .ext { display: none; }
+    .side-foot { display: none; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .topbar-actions { width: 100%; }
+    .topbar-actions .btn { flex: 1; justify-content: center; }
+  }
+  @media (prefers-reduced-motion: reduce) { .dot-live { animation: none; } }
+</style>

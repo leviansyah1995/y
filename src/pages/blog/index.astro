@@ -1,0 +1,60 @@
+---
+// src/pages/blog/index.astro — Arsip lengkap semua artikel (tanpa draft)
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import siteConfig from '../../data/siteConfig.json';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const withBase = (p: string) => `${base}${p.startsWith('/') ? p : `/${p}`}`;
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => new Date(b.data.pubDate).getTime() - new Date(a.data.pubDate).getTime()
+);
+const dateFmt = new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' });
+---
+
+<BaseLayout title="Artikel" description={`Semua artikel ${siteConfig.siteTitle} — oprek HP & web micro tool.`}>
+  <p class="section-eyebrow">ARSIP</p>
+  <h1>Semua Artikel</h1>
+  <p class="lede">{posts.length} artikel tersedia — dari oprek software HP sampai web micro tool.</p>
+
+  {posts.length === 0 ? (
+    <p class="empty">Belum ada artikel. Buka <a href={withBase('/admin/')}>/admin</a> untuk menulis yang pertama.</p>
+  ) : (
+    <ul class="post-grid">
+      {posts.map((post) => (
+        <li class="post-card">
+          <a class="card-link" href={withBase(`/blog/${post.id}/`)}>
+            {post.data.heroImage && (
+              <img class="card-img" src={withBase(post.data.heroImage)} alt={post.data.title} loading="lazy" decoding="async" />
+            )}
+            <div class="card-body">
+              <span class="chip">{post.data.category}</span>
+              <h3>{post.data.title}</h3>
+              <p>{post.data.description}</p>
+              <div class="card-meta">
+                <span>📅 {dateFmt.format(new Date(post.data.pubDate))}</span>
+                <span>✍️ {siteConfig.authorName}</span>
+              </div>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</BaseLayout>
+
+<style>
+  .section-eyebrow { margin: 0 0 .2rem; font-size: .68rem; font-weight: 800; letter-spacing: .2em; color: var(--muted); }
+  .post-grid { list-style: none; margin: 1.5rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(295px, 1fr)); gap: 1.25rem; }
+  .post-card { background: #fff; border: 1px solid var(--line); border-radius: 1.1rem; overflow: hidden; transition: transform .2s ease, box-shadow .2s ease; }
+  .post-card:hover { transform: translateY(-4px); box-shadow: 0 24px 48px -24px rgba(15,23,42,.4); }
+  .card-link { display: flex; flex-direction: column; height: 100%; text-decoration: none; color: inherit; }
+  .card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; border-bottom: 1px solid var(--line); }
+  .card-body { padding: 1.1rem 1.2rem 1.25rem; display: flex; flex-direction: column; gap: .45rem; }
+  .chip { align-self: flex-start; font-size: .66rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: .28rem .65rem; border-radius: 999px; }
+  .card-body h3 { margin: 0; font-size: 1.12rem; line-height: 1.3; letter-spacing: -0.01em; }
+  .card-body p { margin: 0; color: var(--muted); font-size: .87rem; }
+  .card-meta { display: flex; gap: 1rem; flex-wrap: wrap; font-size: .74rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: .65rem; margin-top: .35rem; }
+  .empty { color: var(--muted); padding: 2rem; text-align: center; border: 1px dashed var(--line); border-radius: 1rem; }
+</style>

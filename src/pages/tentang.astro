@@ -1,0 +1,62 @@
+---
+// src/pages/tentang.astro — Profil DevDian
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Tentang"
+  description="Kenalan dengan Dian — DevDian. Praktisi oprek software HP (root, custom ROM, flashing, unbrick) dan pembuat web micro tool dalam Bahasa Indonesia."
+>
+  <div class="about-hero">
+    <div class="avatar" aria-hidden="true">D</div>
+    <div>
+      <p class="section-eyebrow">TENTANG SAYA</p>
+      <h1>Halo, saya Dian 👋</h1>
+      <p class="lede">Saya menulis <strong>DevDian</strong> — blog Bahasa Indonesia tentang
+        <strong>oprek software HP</strong> dan <strong>web micro tool</strong>. Tujuannya satu:
+        panduan yang jujur, runtut, dan bisa langsung dipraktikkan tanpa harus bolak-balik
+        membuka belasan tab.</p>
+    </div>
+  </div>
+
+  <h2>📱 Oprek Software HP</h2>
+  <p>Dari unlock bootloader sampai unbrick, ini yang biasa saya tulis dan praktikkan:</p>
+  <ul class="skill-list">
+    <li><strong>Unlock Bootloader &amp; Root</strong> — Xiaomi/Poco/Redmi (fastboot &amp; Mi Unlock), Magisk, Zygisk, dan modul-modulnya.</li>
+    <li><strong>Custom ROM &amp; Recovery</strong> — LineageOS, recovery TWRP/PBRP, instalasi via fastboot/EDL, dan anti-rollback.</li>
+    <li><strong>Flashing &amp; Unbrick</strong> — flash stock ROM resmi, mengatasi hard brick/bootloop, recovery mode, dan backup/restore partisi.</li>
+    <li><strong>Debloat &amp; Optimasi</strong> — membuang aplikasi bawaan (bloatware) dengan aman, ADB, dan pengaturan performa baterai.</li>
+  </ul>
+  <p class="note">⚠️ Saya selalu menautkan firmware/file ke <em>sumber resmi</em> (situs vendor,
+    forum XDA/komunitas resmi). Saya tidak membagikan ROM bajakan/berlisensi modifikasi ilegal.
+    Oprek HP berisiko menghanguskan garansi — selalu backup dulu, dan praktikkan di perangkat sendiri.</p>
+
+  <h2>🛠️ Web Micro Tool</h2>
+  <p>Selain oprek HP, saya suka membuat <strong>micro tool</strong> — aplikasi web kecil, cepat,
+    tanpa ribet, dan gratis:</p>
+  <ul class="skill-list">
+    <li><strong>Converter &amp; Formatter</strong> — konversi unit, JSON ↔ YAML, minify/format kode, Base64, QR generator.</li>
+    <li><strong>Generator</strong> — password kuat, invoice sederhana, struktur proyek, README, dan konfigurasi (Astro, Cloudflare, CI).</li>
+    <li><strong>Landing page &amp; blog statis</strong> — Astro + Cloudflare Pages/GitHub Pages, SEO teknikal, RSS, dan sitemap.</li>
+    <li><strong>Otomasi</strong> — script kecil untuk merapikan file/backup, dan integrasi Sveltia CMS untuk workflow tanpa WordPress.</li>
+  </ul>
+
+  <h2>✍️ Kenapa Blog Ini Ada</h2>
+  <p>Banyak tutorial oprek HP &amp; web di luar sana setengah matang: lompat langkah, screenshot buram,
+    atau file yang tautannya sudah mati. Di DevDian saya menulis ulang langkahnya pelan-pelan,
+    dengan urutan yang jelas, peringatan risiko yang jujur, dan bahasa yang tidak menggurui.</p>
+
+  <h2>📬 Kontak</h2>
+  <p>Punya pertanyaan soal oprek HP atau micro tool, atau ingin kolaborasi?
+    Sapa saya di <a href="/kontak/">halaman Kontak</a> — atau langsung buka
+    <a href="/privasi/">kebijakan privasi</a> jika ingin tahu cara data Anda diperlakukan.</p>
+</BaseLayout>
+
+<style>
+  .section-eyebrow { margin: 0 0 .2rem; font-size: .68rem; font-weight: 800; letter-spacing: .2em; color: var(--muted); }
+  .about-hero { display: flex; gap: 1.5rem; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 1.25rem; padding: 1.5rem clamp(1.25rem, 4vw, 2rem); }
+  .avatar { flex: none; display: grid; place-items: center; width: 96px; height: 96px; border-radius: 1.5rem; font-size: 2.6rem; font-weight: 800; color: #fff; background: linear-gradient(135deg,#4f46e5,#06b6d4); box-shadow: 0 18px 40px -18px rgba(79,70,229,.6); }
+  .skill-list { padding-left: 1.25rem; display: flex; flex-direction: column; gap: .4rem; }
+  .note { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: .8rem 1rem; border-radius: .75rem; font-size: .88rem; }
+  @media (max-width: 640px) { .about-hero { flex-direction: column; text-align: center; } }
+</style>

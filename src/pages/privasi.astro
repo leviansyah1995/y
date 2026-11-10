@@ -1,0 +1,79 @@
+---
+// src/pages/privasi.astro — Kebijakan Privasi DevDian
+// DIBUTUHKAN oleh Google AdSense & GA4. Sesuaikan tanggal & email kontak.
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const lastUpdated = '9 November 2026';
+const contactEmail = 'halo@devdian.id'; // ← ganti dengan email Anda
+---
+
+<BaseLayout
+  title="Kebijakan Privasi"
+  description="Kebijakan privasi DevDian — cara kami mengumpulkan, menggunakan, dan melindungi data Anda, termasuk cookies Google AdSense & Google Analytics."
+>
+  <p class="section-eyebrow">PRIVASI</p>
+  <h1>Kebijakan Privasi</h1>
+  <p class="lede">Terakhir diperbarui: {lastUpdated} · Berlaku untuk situs <strong>DevDian</strong></p>
+
+  <h2>1. Informasi yang Kami Kumpulkan</h2>
+  <p>Saat Anda mengunjungi situs ini, kami dapat mengumpulkan informasi non-pribadi secara
+    otomatis melalui cookie dan teknologi serupa, antara lain: alamat IP (ter-anoniminasi oleh
+    penyedia analytics), jenis browser &amp; perangkat, halaman yang dikunjungi, durasi kunjungan,
+    dan sumber kunjungan (misalnya mesin pencari atau tautan dari situs lain).</p>
+
+  <h2>2. Google Analytics 4 &amp; Analytics Ringan</h2>
+  <p>Kami dapat menggunakan Google Analytics 4 (GA4) untuk memahami bagaimana pengunjung
+    menggunakan situs ini secara agregat. Selain itu, situs ini dapat menggunakan
+    <strong>Cloudflare Web Analytics</strong> dan/atau <strong>GoatCounter</strong> — alat
+    analytics ringan yang <em>tidak menggunakan cookie</em>, tidak mengidentifikasi individu,
+    dan tidak menyimpan alamat IP pengunjung. GA4 dapat menyimpan identifier pseudonymous
+    di browser Anda melalui cookie (mis. <code>_ga</code>). Data statistik yang kami lihat
+    terbatas pada angka agregat: jumlah tayang per halaman, sumber kunjungan, negara/kota,
+    jenis perangkat, dan performa halaman. Anda dapat menolak pelacakan dengan memasang
+    ekstensi <em>Google Analytics Opt-out Browser Add-on</em> atau memblokir cookie
+    pihak ketiga di browser Anda.</p>
+
+  <h2>3. Google AdSense &amp; Cookies Periklanan</h2>
+  <p>Situs ini dapat menampilkan iklan dari <strong>Google AdSense</strong>. Google, sebagai
+    vendor pihak ketiga, menggunakan cookie (termasuk cookie DART) untuk menayangkan iklan
+    berdasarkan kunjungan Anda ke situs ini dan/atau situs lain di internet. Anda dapat
+    menonaktifkan iklan yang dipersonalisasi dengan mengunjungi
+    <a href="https://www.google.com/settings/ads" rel="noopener" target="_blank">Google Ads Settings</a>.
+    Opt-out cookie pihak ketiga juga tersedia melalui <a href="https://www.aboutads.info/choices/" rel="noopener" target="_blank">aboutads.info</a>.</p>
+  <p>Jika Anda tidak setuju dengan penggunaan cookie periklanan, Anda dapat menonaktifkan cookie
+    melalui pengaturan browser kapan pun.</p>
+
+  <h2>4. Konten &amp; Risiko (Oprek HP)</h2>
+  <p>Artikel oprek software HP disediakan <em>as-is</em> untuk tujuan edukasi. Segala tindakan
+    yang Anda lakukan pada perangkat Anda (unlock, root, flash, unbrick) sepenuhnya tanggung
+    jawab Anda. Selalu backup data sebelum memulai. Kami tidak bertanggung jawab atas kerusakan
+    perangkat, kehilangan data, atau hangusnya garansi akibat mengikuti panduan di situs ini.</p>
+
+  <h2>5. Tautan ke Situs Lain</h2>
+  <p>Artikel dapat memuat tautan ke situs pihak ketiga (sumber firmware, forum, dokumentasi).
+    Kami tidak mengontrol dan tidak bertanggung jawab atas konten atau praktik privasi situs
+    tersebut — periksa kebijakan privasi masing-masing.</p>
+
+  <h2>6. Privasi Anak</h2>
+  <p>DevDian tidak ditujukan untuk anak-anak di bawah usia 13 tahun dan kami tidak secara sadar
+    mengumpulkan data pribadi anak. Jika Anda orang tua dan menemukan konten yang tidak
+    pantas, hubungi kami.</p>
+
+  <h2>7. Keamanan &amp; Retensi Data</h2>
+  <p>Situs ini bersifat statis (tanpa database akun). Data analytics disimpan oleh Google sesuai
+    kebijakan retensi GA4 (default 2 bulan untuk data granular). Tidak ada data kartu kredit/kata
+    sandi yang kami kumpulkan atau simpan di situs ini.</p>
+
+  <h2>8. Perubahan Kebijakan</h2>
+  <p>Kebijakan ini dapat diperbarui sewaktu-waktu. Versi terbaru selalu tersedia di halaman ini
+    dengan tanggal pembaruan di bagian atas.</p>
+
+  <h2>9. Kontak</h2>
+  <p>Pertanyaan tentang kebijakan privasi ini? Email saya di
+    <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.</p>
+</BaseLayout>
+
+<style>
+  .section-eyebrow { margin: 0 0 .2rem; font-size: .68rem; font-weight: 800; letter-spacing: .2em; color: var(--muted); }
+  .lede code, .page code { background: var(--accent-soft, #eef2ff); border-radius: .35rem; padding: .1em .4em; font-size: .9em; color: var(--accent, #4f46e5); }
+</style>

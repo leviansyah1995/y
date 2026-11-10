@@ -1,0 +1,34 @@
+---
+/**
+ * AnalyticsBeacons.astro
+ * ----------------------
+ * Analytics RINGAN, tanpa cookie, tanpa identitas personal:
+ *  1. Cloudflare Web Analytics — otomatis terdeteksi dashboard Cloudflare,
+ *     script hanya dirender jika `cloudflareAnalyticsToken` diisi di /admin.
+ *     Token ini nilai PUBLIK (aman di-commit) — bukan API secret.
+ *  2. GoatCounter — counter open-source; mengaktifkan penghitung
+ *     "artikel ini dilihat N kali" jika `goatcounterCode` diisi di /admin.
+ */
+import siteConfig from '../data/siteConfig.json';
+
+const cf = (siteConfig.cloudflareAnalyticsToken ?? '').trim();
+const gc = (siteConfig.goatcounterCode ?? '').trim();
+---
+
+{cf && (
+  <script
+    is:inline
+    defer
+    src="https://static.cloudflareinsights.com/beacon.min.js"
+    data-cf-beacon={`{"token": "${cf}"}`}
+  ></script>
+)}
+
+{gc && (
+  <script
+    is:inline
+    async
+    src="https://gc.zgo.at/count.js"
+    data-goatcounter={`https://${gc}.goatcounter.com/count`}
+  ></script>
+)}

@@ -1,0 +1,31 @@
+---
+// src/pages/blog/[...slug].astro
+// Route dinamis untuk artikel dari Content Collection "blog".
+// URL: /blog/<nama-file-tanpa-extension>/  (draft otomatis dilewati saat build)
+import { getCollection, render } from 'astro:content';
+import BlogPostLayout from '../../layouts/BlogPostLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: post,
+  }));
+}
+
+const post = Astro.props;
+const { Content } = await render(post);
+const { title, description, pubDate, updatedDate, heroImage, tags, category } = post.data;
+---
+
+<BlogPostLayout
+  title={title}
+  description={description}
+  pubDate={pubDate}
+  updatedDate={updatedDate}
+  heroImage={heroImage}
+  tags={tags}
+  category={category}
+>
+  <Content />
+</BlogPostLayout>

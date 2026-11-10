@@ -1,0 +1,63 @@
+---
+/**
+ * AuthorBox.astro — Kartu profil penulis di akhir artikel.
+ * Konten diambil dari siteConfig.json ([PROFIL] Peran & Bio) — bisa diedit dari /admin.
+ */
+import siteConfig from '../data/siteConfig.json';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const withBase = (p: string) => `${base}${p.startsWith('/') ? p : `/${p}`}`;
+
+const initial = (siteConfig.authorName ?? 'A').trim().charAt(0).toUpperCase();
+const role = (siteConfig.authorRole ?? '').trim() || 'Penulis';
+const bio = (siteConfig.authorBio ?? '').trim() || siteConfig.siteDescription;
+---
+
+<aside class="author-box" aria-label="Tentang penulis">
+  <div class="author-avatar" aria-hidden="true">{initial}</div>
+  <div class="author-body">
+    <p class="author-eyebrow">TENTANG PENULIS</p>
+    <h3 class="author-name">{siteConfig.authorName}</h3>
+    <p class="author-role">{role}</p>
+    <p class="author-bio">{bio}</p>
+    <div class="author-actions">
+      <a class="author-link primary" href={withBase('/tentang/')}>Tentang Saya →</a>
+      <a class="author-link" href={withBase('/kontak/')}>Hubungi Saya</a>
+    </div>
+  </div>
+</aside>
+
+<style>
+  .author-box {
+    display: flex; gap: 1.1rem; align-items: flex-start;
+    margin-top: 1.75rem; padding: 1.25rem 1.4rem;
+    background: linear-gradient(135deg, #eef2ff 0%, #ecfeff 100%);
+    border: 1px solid #e0e7ff; border-radius: 1.1rem;
+  }
+  .author-avatar {
+    flex: none; display: grid; place-items: center;
+    width: 72px; height: 72px; border-radius: 1.1rem;
+    font-size: 1.9rem; font-weight: 800; color: #fff;
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+    box-shadow: 0 12px 26px -12px rgba(79, 70, 229, .65);
+  }
+  .author-eyebrow { margin: 0 0 .15rem; font-size: .62rem; font-weight: 800; letter-spacing: .2em; color: #6366f1; }
+  .author-name { margin: 0; font-size: 1.2rem; letter-spacing: -0.01em; }
+  .author-role { margin: .1rem 0 .5rem; font-size: .8rem; font-weight: 700; color: #4f46e5; }
+  .author-bio { margin: 0; font-size: .88rem; color: #475569; }
+  .author-actions { display: flex; gap: .6rem; margin-top: .75rem; flex-wrap: wrap; }
+  .author-link {
+    display: inline-flex; align-items: center; text-decoration: none;
+    font-size: .8rem; font-weight: 700; color: #4f46e5;
+    background: #fff; border: 1px solid #e0e7ff; border-radius: .6rem; padding: .4rem .8rem;
+    transition: all .18s ease;
+  }
+  .author-link:hover { border-color: #c7d2fe; background: #eef2ff; }
+  .author-link.primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+  .author-link.primary:hover { background: #4338ca; }
+
+  @media (max-width: 560px) {
+    .author-box { flex-direction: column; text-align: center; align-items: center; }
+    .author-actions { justify-content: center; }
+  }
+</style>

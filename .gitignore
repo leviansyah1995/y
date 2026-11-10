@@ -1,0 +1,15 @@
+# dependensi
+node_modules/
+
+# build output
+dist/
+
+# cache astro
+.astro/
+
+# log & editor
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example

@@ -1,0 +1,65 @@
+---
+// Komponen slot iklan AdSense yang "pintar":
+// - Tidak merender apa pun jika adsEnabled = false di siteConfig.json
+// - Tidak merender apa pun jika adsenseId masih placeholder
+// - Label "Advertisement" otomatis (kepatuhan kebijakan AdSense)
+import siteConfig from '../data/siteConfig.json';
+
+interface Props {
+  /** ID unit iklan (slot) dari dashboard AdSense, misal "1234567890" */
+  slot?: string;
+  /** Format unit: 'auto' (responsive) | 'fluid' | 'rectangle' | 'horizontal' */
+  format?: 'auto' | 'fluid' | 'rectangle' | 'horizontal';
+  label?: string;
+}
+
+const {
+  slot = siteConfig.adsenseSlotInPost || '',
+  format = 'auto',
+  label = 'Advertisement',
+} = Astro.props;
+
+const adsenseId = siteConfig.adsenseId ?? '';
+const isPlaceholder = adsenseId.includes('0000000000000000') || adsenseId.trim() === '';
+const show = siteConfig.adsEnabled === true && !isPlaceholder && slot.trim() !== '';
+---
+
+{
+  show && (
+    <div class="ad-slot" aria-hidden="true">
+      <span class="ad-label">{label}</span>
+      <ins
+        class="adsbygoogle"
+        style="display:block"
+        data-ad-client={adsenseId}
+        data-ad-slot={slot}
+        data-ad-format={format}
+        data-full-width-responsive="true"
+      />
+      <script is:inline>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+  )
+}
+
+<style>
+  .ad-slot {
+    margin: 2.5rem auto;
+    max-width: 728px;
+    text-align: center;
+    padding: 0.75rem 1rem 1rem;
+    border: 1px dashed rgba(100, 116, 139, 0.4);
+    border-radius: 0.75rem;
+    background: rgba(100, 116, 139, 0.06);
+    overflow: hidden;
+  }
+  .ad-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+</style>

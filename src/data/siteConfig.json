@@ -1,0 +1,63 @@
+{
+  "siteTitle": "DevDian",
+  "siteDescription": "Oprek software HP (root, custom ROM, flashing, unbrick) & tutorial web micro tool yang ringan — ditulis Dian dalam Bahasa Indonesia.",
+  "keywords": [
+    "devdian",
+    "oprek hp",
+    "root android",
+    "custom rom",
+    "flashing hp",
+    "unbrick hp",
+    "web micro tool",
+    "tutorial web",
+    "astro",
+    "cloudflare pages"
+  ],
+  "siteUrl": "https://nama-proyek.pages.dev",
+  "defaultMetaImage": "/images/uploads/contoh-hero.svg",
+  "authorName": "Dian",
+
+  "nav": [
+    { "label": "Beranda", "href": "/" },
+    { "label": "Artikel", "href": "/blog/" },
+    { "label": "Tentang", "href": "/tentang/" },
+    { "label": "Kontak", "href": "/kontak/" }
+  ],
+  "socials": [
+    { "platform": "GitHub", "url": "https://github.com/devdian" },
+    { "platform": "YouTube", "url": "https://www.youtube.com/@DevDian" },
+    { "platform": "Telegram", "url": "https://t.me/devdian" }
+  ],
+  "footerTagline": "Dibangun dengan Astro · Konten dikelola via Sveltia CMS · Deploy via Cloudflare Pages",
+  "heroEyebrow": "⚡ OPREK HP · WEB MICRO TOOL",
+  "heroTitleA": "Oprek HP & web micro tool,",
+  "heroTitleB": "selangkah demi selangkah.",
+  "heroCtaPrimaryLabel": "Baca Artikel Terbaru",
+  "heroCtaPrimaryHref": "#artikel",
+  "heroCtaSecondaryLabel": "Tentang DevDian",
+  "heroCtaSecondaryHref": "/tentang/",
+  "announcementEnabled": false,
+  "announcementText": "🚀 Artikel baru setiap minggu — jangan sampai ketinggalan!",
+  "announcementLinkLabel": "Baca sekarang →",
+  "announcementHref": "/blog/",
+  "customMetaTags": [
+    { "attribute": "name", "key": "theme-color", "content": "#0b1220" }
+  ],
+
+  "authorRole": "Penulis DevDian · Oprek HP & Web Micro Tool",
+  "authorBio": "Dian — menulis panduan oprek software HP (unlock, root, custom ROM, flashing, unbrick) dan web micro tool yang ringan, dalam Bahasa Indonesia.",
+
+  "adsenseId": "ca-pub-0000000000000000",
+  "adsEnabled": false,
+  "adsInPosts": true,
+  "adsBeforeContent": false,
+  "adsAfterContent": true,
+  "adsenseSlotInPost": "",
+  "adsenseSlotBeforeContent": "",
+
+  "gscVerification": "",
+  "ga4MeasurementId": "G-XXXXXXXXXX",
+  "lookerStudioEmbedUrl": "",
+  "cloudflareAnalyticsToken": "",
+  "goatcounterCode": ""
+}

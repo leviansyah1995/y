@@ -1,0 +1,16 @@
+# robots.txt — DevDian
+# Izinkan semua crawler untuk konten publik…
+User-agent: *
+Allow: /
+
+# …kecuali area admin & dashboard internal
+Disallow: /admin/
+Disallow: /dashboard/
+
+# Sitemap — butuh integrasi sitemap agar file ini benar-benar ada.
+# Jalankan: npm install @astrojs/sitemap
+# lalu di astro.config.mjs:
+#   import sitemap from '@astrojs/sitemap';
+#   export default defineConfig({ site: '...', integrations: [sitemap()] });
+# Jika belum dipasang, HAPUS baris Sitemap di bawah (robots tidak boleh menunjuk file yang tidak ada).
+Sitemap: https://nama-proyek.pages.dev/sitemap-index.xml

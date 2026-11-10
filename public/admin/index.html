@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Jangan di-index mesin pencari: halaman admin bukan untuk publik -->
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Admin — Dashboard Konten</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>⚡</text></svg>"
+    />
+    <style>
+      /* Latar sementara selama bundle CMS dimuat */
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0b1220;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Sveltia CMS — SPA murni dari CDN, tidak perlu build step.
+      PENTING: jangan tambahkan atribut type="module" dan jangan tambahkan <link> CSS
+      (Sveltia tidak butuh itu; lihat dokumentasi resmi).
+      Tertarik ke Decap CMS? Ganti baris di bawah menjadi:
+      <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+      (config.yml tetap kompatibel, tapi ganti widget richtext → markdown di config.yml)
+    -->
+    <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+  </body>
+</html>
