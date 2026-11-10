@@ -8,7 +8,7 @@
 backend:
   name: github
   # <<< GANTI INI: format owner/repo sesuai repositori GitHub Anda
-  repo: username-github/nama-repo
+  repo: leviansyah1995/y
   branch: main
   # ── Login GitHub ──────────────────────────────────────────
   # Metode A (paling sederhana): TIDAK PERLU isi apa pun di sini.

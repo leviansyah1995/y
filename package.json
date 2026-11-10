@@ -1,0 +1,18 @@
+{
+  "name": "devdian-blog",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Blog DevDian — Astro statis + Sveltia CMS + Cloudflare Pages (oprek HP & web micro tool)",
+  "engines": {
+    "node": ">=18.17.1"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.0.0"
+  }
+}

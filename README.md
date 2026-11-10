@@ -23,7 +23,9 @@ kelola artikel (CMS Git-based), pengaturan global (SEO & AdSense), dan halaman a
 
 ## Cara pakai singkat
 
-1. **Salin semua isi paket ini ke root proyek Astro Anda** (pertahankan struktur folder).
+1. **Repo ini sekarang standalone** — sudah termasuk `package.json` + `package-lock.json` + `.nvmrc`,
+   jadi bisa langsung di-build Cloudflare Pages dari root repo (tanpa proyek Astro terpisah).
+   Alternatif: tetap bisa disalin ke root proyek Astro Anda (pertahankan struktur folder).
 2. Edit `public/admin/config.yml` → ganti `repo: username-github/nama-repo`.
 3. Edit `astro.config.mjs` → isi `site` dengan URL `*.pages.dev` atau custom domain (tanpa `base`).
 4. `npm run dev` → buka `http://localhost:4321/admin/` (login "Sign In Using Access Token") dan

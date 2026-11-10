@@ -13,4 +13,4 @@ Disallow: /dashboard/
 #   import sitemap from '@astrojs/sitemap';
 #   export default defineConfig({ site: '...', integrations: [sitemap()] });
 # Jika belum dipasang, HAPUS baris Sitemap di bawah (robots tidak boleh menunjuk file yang tidak ada).
-Sitemap: https://nama-proyek.pages.dev/sitemap-index.xml
+Sitemap: https://y.pages.dev/sitemap-index.xml
